@@ -1,0 +1,12 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+me:
+  polynom:
+    polycloud:
+      apps:
+        example:
+          enabled: true
