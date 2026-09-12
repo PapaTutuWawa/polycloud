@@ -29,7 +29,7 @@ class PostAuthenticationFilter(
     override fun doFilter(
         request: ServletRequest,
         response: ServletResponse,
-        filterChain: FilterChain
+        filterChain: FilterChain,
     ) {
         if (request !is HttpServletRequest) {
             logger.debug("Request is not a HttpServletRequest. Skipping.")
@@ -42,10 +42,10 @@ class PostAuthenticationFilter(
         if (!evaluator.isPathAuthenticated(request.servletPath)) {
             logger.debug("Skipping request to [{}] as it is not marked as authenticated", request.servletPath)
             filterChain.doFilter(request, response)
-            return;
+            return
         }
 
-        val auth = request.getAttribute(AuthenticationData.requestAttribute) as AuthVerificationResult?
+        val auth = request.getAttribute(AuthenticationData.REQUEST_ATTRIBUTE) as AuthVerificationResult?
         logger.debug("Checking authentication using [{}]", auth)
         if (auth == null) {
             logger.debug("Rejecting request to [{}] because there is no authentication data", request.servletPath)

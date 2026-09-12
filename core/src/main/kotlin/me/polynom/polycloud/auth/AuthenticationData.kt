@@ -5,7 +5,8 @@ package me.polynom.polycloud.auth
  */
 object AuthenticationData {
     /** The header to use for authentication. */
-    const val header = "Authorization"
+    const val HEADER = "Authorization"
+
     /** The key in the request properties. */
-    const val requestAttribute = "authorization"
+    const val REQUEST_ATTRIBUTE = "authorization"
 }

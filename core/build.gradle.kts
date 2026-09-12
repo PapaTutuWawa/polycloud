@@ -6,6 +6,7 @@ plugins {
     id("org.springframework.boot") version "4.1.1"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.lombok") version "2.4.0"
+    id("com.diffplug.spotless") version "8.10.2"
 }
 
 group = "me.polynom"
@@ -47,6 +48,12 @@ dependencies {
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+    }
+}
+
+spotless {
+    kotlin {
+        ktlint("1.0.0")
     }
 }
 

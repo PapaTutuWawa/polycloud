@@ -14,9 +14,11 @@ class SecurityConfig {
      * Configuration of authenticated routes of the core API.
      */
     @Bean
-    fun coreSecurityConfig() = PathAuthenticationConfig(
-        paths = listOf(
-            AuthenticatedPath("/api/v1/apps"),
-        ),
-    )
+    fun coreSecurityConfig() =
+        PathAuthenticationConfig(
+            paths =
+                listOf(
+                    AuthenticatedPath("/api/v1/apps"),
+                ),
+        )
 }

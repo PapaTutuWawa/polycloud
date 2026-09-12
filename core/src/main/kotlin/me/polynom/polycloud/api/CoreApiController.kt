@@ -26,30 +26,35 @@ class CoreApiController(
      * Endpoint that indicates that the server is up.
      */
     @GetMapping("/public/health", produces = ["application/json"])
-    fun health() = HealthDto(
-        status = "OK",
-    )
+    fun health() =
+        HealthDto(
+            status = "OK",
+        )
 
     @GetMapping("/public/auth/mechanisms")
-    fun authMechanisms() = AuthMechanismsDto(
-        mechanisms = authPlugins.map {
-            val data = it.getData()
-            AuthMechanismDto(
-                id = it.javaClass.name,
-                displayName = data.displayName
-            )
-        }
-    )
+    fun authMechanisms() =
+        AuthMechanismsDto(
+            mechanisms =
+                authPlugins.map {
+                    val data = it.getData()
+                    AuthMechanismDto(
+                        id = it.javaClass.name,
+                        displayName = data.displayName,
+                    )
+                },
+        )
 
     @GetMapping("/apps")
-    fun apps() = EnabledAppsDto(
-        apps = plugins
-            .filter {
-                it !is PolycloudAuthPlugin
-            }.map {
-                EnabledAppDto(
-                    name = it.javaClass.name,
-                )
-            }
-    )
+    fun apps() =
+        EnabledAppsDto(
+            apps =
+                plugins
+                    .filter {
+                        it !is PolycloudAuthPlugin
+                    }.map {
+                        EnabledAppDto(
+                            name = it.javaClass.name,
+                        )
+                    },
+        )
 }

@@ -83,7 +83,10 @@ class PathTrie {
      * @param nextSegment   The path segment that follows {@param segment} or null, if there is none.
      * @return The created trie node.
      */
-    private fun addEmptyTrie(segment: String, nextSegment: String?): PathTrie {
+    private fun addEmptyTrie(
+        segment: String,
+        nextSegment: String?,
+    ): PathTrie {
         val trie = PathTrie()
         mapping[segment] = trie
         if (segment == "*") {
@@ -138,7 +141,7 @@ class PathTrie {
                     } else if (trie.multiSegmentWildcard!!.second == null && isEnd) {
                         trie = trie.multiSegmentWildcard!!.first
                         break
-                    } else  {
+                    } else {
                         wildcardUse += 1
                         continue
                     }

@@ -10,15 +10,15 @@ import org.springframework.context.event.EventListener
 @SpringBootApplication
 @EnableConfigurationProperties
 class PolycloudApplication(
-	/** List of active plugins. */
-	private val plugins: List<PolycloudPlugin>
+    /** List of active plugins. */
+    private val plugins: List<PolycloudPlugin>,
 ) {
-	@EventListener(ApplicationReadyEvent::class)
-	fun applicationReadyEvent() {
-		plugins.forEach(PolycloudPlugin::register)
-	}
+    @EventListener(ApplicationReadyEvent::class)
+    fun applicationReadyEvent() {
+        plugins.forEach(PolycloudPlugin::register)
+    }
 }
 
 fun main(args: Array<String>) {
-	runApplication<PolycloudApplication>(*args)
+    runApplication<PolycloudApplication>(*args)
 }

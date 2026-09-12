@@ -6,11 +6,11 @@ import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
 import me.polynom.polycloud.auth.AuthenticationData
-import me.polynom.polycloud.plugin.auth.AuthenticationManager as PluginAuthenticationManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
+import me.polynom.polycloud.plugin.auth.AuthenticationManager as PluginAuthenticationManager
 
 /**
  * Filter that finds out what authentication mechanism should be used.
@@ -35,7 +35,7 @@ class AuthenticationFilter(
             return
         }
 
-        val header = request.getHeader(AuthenticationData.header)
+        val header = request.getHeader(AuthenticationData.HEADER)
         if (header?.isEmpty() ?: true) {
             logger.debug("No Authorization header, skipping")
             filterChain.doFilter(request, response)
@@ -50,7 +50,7 @@ class AuthenticationFilter(
         }
 
         logger.debug("Adding [{}] as authentication", result)
-        request.setAttribute(AuthenticationData.requestAttribute, result)
+        request.setAttribute(AuthenticationData.REQUEST_ATTRIBUTE, result)
         filterChain.doFilter(request, response)
     }
 }
