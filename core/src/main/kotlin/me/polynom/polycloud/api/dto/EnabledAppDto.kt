@@ -8,5 +8,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class EnabledAppDto(
     /** Name of the enabled app. */
-    val name: String,
+    val id: String,
 )

@@ -53,7 +53,7 @@ class CoreApiController(
                         it !is PolycloudAuthPlugin
                     }.map {
                         EnabledAppDto(
-                            name = it.javaClass.name,
+                            id = it.javaClass.name,
                         )
                     },
         )
