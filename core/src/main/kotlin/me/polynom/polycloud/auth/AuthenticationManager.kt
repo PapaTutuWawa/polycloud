@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
  * Bean dealing with authentication checks.
  */
 @Service
-class AuthenticationManagerImpl(
+class PolycloudAuthenticationManager(
     /** List of available authentication plugins. */
     private val authPlugins: List<PolycloudAuthPlugin>,
 ) : AuthenticationManager {
@@ -24,8 +24,12 @@ class AuthenticationManagerImpl(
             return null
         }
 
-        // Find the plugin that handles this auth scheme.
-        val plugin = authPlugins.find { it.getData().scheme == parts[0] } ?: return null
+        val plugin = authPlugins.find { it.getData().scheme == parts[0] }
+        if (plugin == null) {
+            return null
+        }
+
+        logger.debug("Chose [{}] as the authenticating plugin", plugin.javaClass.name)
         return plugin.verify(token)
     }
 }

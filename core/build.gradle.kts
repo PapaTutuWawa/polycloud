@@ -29,6 +29,7 @@ dependencies {
     developmentOnly(project(":authOidc"))
     developmentOnly(project(":examplePlugin"))
     developmentOnly(project(":files"))
+    developmentOnly(project(":stubAuth"))
 
     // SpringBoot
     implementation("org.springframework.boot:spring-boot-starter-webmvc")

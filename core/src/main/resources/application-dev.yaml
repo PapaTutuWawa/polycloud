@@ -12,3 +12,11 @@ me:
           enabled: true
         files:
           enabled: true
+        auth:
+          stub:
+            enabled: true
+
+# Enable debug logging for everything polycloud
+logging:
+  level:
+    me.polynom.polycloud: debug
