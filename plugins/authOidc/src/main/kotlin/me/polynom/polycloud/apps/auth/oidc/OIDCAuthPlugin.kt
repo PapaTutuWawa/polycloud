@@ -16,7 +16,6 @@ import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import org.springframework.web.util.UriComponentsBuilder
 import java.net.URI
 import java.net.URL
 import java.net.http.HttpClient
@@ -44,20 +43,16 @@ class OIDCAuthPlugin(
     lateinit var jwkRsaProvider: RSAKeyProvider
 
     override fun getData(): AuthPluginData {
-        val redirectUrl = UriComponentsBuilder
-            .fromUri(URI.create(oidcConfig.authorize))
-            .queryParam("client_id", config.clientId)
-            .queryParam("response_type", "code")
-            .queryParam("scope", listOf("openid", "profile", "refresh_token").joinToString("%20"))
-            .build()
-            .toUriString()
         return AuthPluginData(
             "oidc",
             "Bearer",
             config.displayName,
             config.displayIcon,
             mapOf(
-                "urlBase" to redirectUrl,
+                "url" to oidcConfig.authorize,
+                "client_id" to config.clientId,
+                "response_type" to "code",
+                "scopes" to config.scopes.joinToString(" ")
             ),
         )
     }

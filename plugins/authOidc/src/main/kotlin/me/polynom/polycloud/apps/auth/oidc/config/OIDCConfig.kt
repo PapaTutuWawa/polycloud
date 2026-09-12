@@ -20,5 +20,5 @@ data class OIDCConfig @ConstructorBinding constructor(
     /** Roles claim. */
     val rolesClaim: String = "groups",
     /** OIDC scopes to request. */
-    val scopes: List<String> = emptyList(),
+    val scopes: List<String> = listOf("openid", "profile", "refresh_token"),
 )
