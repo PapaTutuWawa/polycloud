@@ -28,6 +28,7 @@ dependencies {
     // Add all first-party plugins only while developing.
     developmentOnly(project(":authOidc"))
     developmentOnly(project(":examplePlugin"))
+    developmentOnly(project(":files"))
 
     // SpringBoot
     implementation("org.springframework.boot:spring-boot-starter-webmvc")

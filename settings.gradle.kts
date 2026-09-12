@@ -14,3 +14,6 @@ project(":authOidc").projectDir = file("plugins/authOidc")
 // Example plugin
 include("examplePlugin")
 project(":examplePlugin").projectDir = file("plugins/examplePlugin")
+
+include("files")
+project(":files").projectDir = file("plugins/files")

@@ -10,3 +10,5 @@ me:
       apps:
         example:
           enabled: true
+        files:
+          enabled: true
