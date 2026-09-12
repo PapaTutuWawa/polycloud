@@ -20,6 +20,7 @@ class SecurityConfig {
                 listOf(
                     AuthenticatedPath("/**"),
                     AuthenticatedPath("/api/v1/public/**", authenticated = false),
+                    AuthenticatedPath("/actuator/**", authenticated = false),
                 ),
         )
 }
