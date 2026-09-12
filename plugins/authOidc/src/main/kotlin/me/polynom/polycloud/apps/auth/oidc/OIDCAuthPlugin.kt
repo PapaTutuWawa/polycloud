@@ -10,15 +10,11 @@ import me.polynom.polycloud.apps.auth.oidc.config.OIDCConfig
 import me.polynom.polycloud.apps.auth.oidc.config.OIDCDiscoveredConfig
 import me.polynom.polycloud.apps.auth.oidc.jwt.RSAKeyProvider
 import me.polynom.polycloud.apps.auth.oidc.rest.OIDCDiscoveryResponse
-import me.polynom.polycloud.plugin.auth.AuthenticationManager
 import me.polynom.polycloud.plugin.auth.PolycloudAuthPlugin
 import me.polynom.polycloud.plugin.auth.dto.AuthPluginData
 import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Component
 import org.springframework.web.util.UriComponentsBuilder
 import java.net.URI

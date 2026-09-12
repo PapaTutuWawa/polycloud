@@ -1,31 +1,9 @@
 package me.polynom.polycloud.auth
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
-
-/**
- * Data class that presents an authenticated path.
- */
-data class AuthenticatedPath(
-    /** The path template that is authenticated. */
-    val pathTemplate: String,
-    /** Flag controlling whether the path should be authenticated or not. */
-    val authenticated: Boolean = true,
-)
-
-/**
- * Collection of paths that are to be authenticated.
- */
-data class PathAuthenticationConfig(
-    /** List of path configurations. */
-    val paths: List<AuthenticatedPath>,
-)
-
 /**
  * A trie that that works on "/" separated paths.
  */
-open class PathTrie(
+class PathTrie(
     private val segment: String,
 ) {
     /** The mapping of path segments to the next node in the trie. */
@@ -165,39 +143,4 @@ open class PathTrie(
         }
         return null
     }
-}
-
-/**
- * Bean that holds the logic to evaluate if paths should be authenticated.
- */
-@Service
-class RouteAuthenticationEvaluator(
-    /** The path configurations. */
-    configs: List<PathAuthenticationConfig>,
-) {
-    /** Logging. */
-    private val logger: Logger = LoggerFactory.getLogger(javaClass)
-
-    /** The trie that holds all authenticated paths. */
-    private val pathTrie: PathTrie = PathTrie("root")
-
-    init {
-        var addedRoutes = 0
-        configs.forEach { config ->
-            config.paths.forEach {
-                pathTrie.addPath(it.pathTemplate, it.authenticated)
-                addedRoutes++
-            }
-        }
-
-        logger.info("Added [{}] authenticated routes", addedRoutes)
-    }
-
-    /**
-     * Checks if a path is supposed to be authenticated.
-     *
-     * @param path  The path to check.
-     * @return True, if the path is authenticated. False, if not.
-     */
-    fun isPathAuthenticated(path: String): Boolean = pathTrie.traverse(path)?.getIsAuthenticated() ?: false
 }

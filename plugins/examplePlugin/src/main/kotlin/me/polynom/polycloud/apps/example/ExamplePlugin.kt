@@ -24,4 +24,7 @@ class ExamplePlugin : PolycloudPlugin {
 
     @GetMapping("/test")
     fun test() = ExampleResponseDto("Hello World!")
+
+    @GetMapping("/authenticated")
+    fun authenticated() = ExampleResponseDto("Hello authenticated World!")
 }
