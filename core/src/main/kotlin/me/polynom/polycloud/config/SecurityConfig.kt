@@ -18,7 +18,8 @@ class SecurityConfig {
         PathAuthenticationConfig(
             paths =
                 listOf(
-                    AuthenticatedPath("/api/v1/apps"),
+                    AuthenticatedPath("/**"),
+                    AuthenticatedPath("/api/v1/public/**", authenticated = false),
                 ),
         )
 }

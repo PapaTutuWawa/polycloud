@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service
 data class AuthenticatedPath(
     /** The path template that is authenticated. */
     val pathTemplate: String,
+    /** Flag controlling whether the path should be authenticated or not. */
+    val authenticated: Boolean = true,
 )
 
 /**
@@ -23,35 +25,23 @@ data class PathAuthenticationConfig(
 /**
  * A trie that that works on "/" separated paths.
  */
-class PathTrie {
+open class PathTrie(
+    private val segment: String,
+) {
     /** The mapping of path segments to the next node in the trie. */
     private val mapping: MutableMap<String, PathTrie> = mutableMapOf()
 
-    /** If this node has a "*" node, then this is a reference to the node "*" points to. */
-    private var singleSegmentWildcard: PathTrie? = null
-
-    /**
-     * If this node has a "**" node, then this is a reference to the node "**" points to together with the path segment
-     * that follows it.
-     */
-    private var multiSegmentWildcard: Pair<PathTrie, String?>? = null
+    /** The ending path segment of a multi wildcard. */
+    private var multiWildcardEnd: String? = null
 
     /** Indicator if this node is the terminal for a path. */
     private var isTerminal: Boolean = false
 
-    /** Getter for the single segment wildcard. */
-    fun getSingleSegmentWildcard(): PathTrie? = singleSegmentWildcard
+    /** Indicator if this node should require authentication or not. */
+    private var isAuthenticated: Boolean = true
 
-    /** Getter for the multi segment wildcard. */
-    fun getMultiSegmentWildcard(): Pair<PathTrie, String?>? = multiSegmentWildcard
-
-    /** Setter for the isTerminal flag. */
-    fun setIsTerminal(value: Boolean) {
-        isTerminal = value
-    }
-
-    /** Getter for the isTerminal flag. */
-    fun getIsTerminal(): Boolean = isTerminal
+    /** Getter for the isAuthenticated flag. */
+    internal fun getIsAuthenticated(): Boolean = isAuthenticated
 
     /**
      * Gets the next trie node from the mapping.
@@ -66,8 +56,6 @@ class PathTrie {
     fun debug(indent: Int = 0) {
         val textIndent = " ".repeat(4 * indent)
         println("$textIndent[[$isTerminal]]")
-        println("$textIndent*: [[$singleSegmentWildcard]]")
-        println("$textIndent**: [[$multiSegmentWildcard]]")
         mapping.forEach { (key, trie) ->
             println("${textIndent}$key:")
             trie.debug(indent + 1)
@@ -87,12 +75,10 @@ class PathTrie {
         segment: String,
         nextSegment: String?,
     ): PathTrie {
-        val trie = PathTrie()
+        val trie = PathTrie(segment)
         mapping[segment] = trie
-        if (segment == "*") {
-            singleSegmentWildcard = trie
-        } else if (segment == "**") {
-            multiSegmentWildcard = Pair(trie, nextSegment)
+        if (segment == "**") {
+            multiWildcardEnd = nextSegment
             if (nextSegment == null) {
                 trie.isTerminal = true
             }
@@ -103,10 +89,15 @@ class PathTrie {
     /**
      * Adds a new path into the trie.
      *
-     * @param path  The path to add.
+     * @param path          The path to add.
+     * @param authenticated Should the path require authentication (true) or not (false).
      */
-    fun addPath(path: String) {
-        val segments = path.split("/")
+    fun addPath(
+        path: String,
+        authenticated: Boolean,
+    ) {
+        var segments = path.split("/")
+        segments = segments.subList(1, segments.size)
         var trie: PathTrie = this
         for ((index, segment) in segments.withIndex()) {
             val child = trie.getTrie(segment)
@@ -115,6 +106,7 @@ class PathTrie {
             trie = child ?: trie.addEmptyTrie(segment, nextSegment)
         }
         trie.isTerminal = true
+        trie.isAuthenticated = authenticated
     }
 
     /**
@@ -125,43 +117,53 @@ class PathTrie {
      */
     fun traverse(path: String): PathTrie? {
         val segments = path.split("/")
-        var trie = this
-        var wildcardUse = 0
-        for ((index, segment) in segments.withIndex()) {
-            val isEnd = index == segments.size - 1
-            if (trie.singleSegmentWildcard != null && trie.getTrie(segment) == null) {
-                trie = trie.singleSegmentWildcard!!
-                continue
-            } else if (trie.multiSegmentWildcard != null && trie.getTrie(segment) == null) {
-                if (wildcardUse > 0) {
-                    println("$wildcardUse;$segment;$isEnd;${trie.multiSegmentWildcard!!.second}")
-                    if (segment == trie.multiSegmentWildcard!!.second) {
-                        trie = trie.multiSegmentWildcard!!.first
-                        wildcardUse = 0
-                    } else if (trie.multiSegmentWildcard!!.second == null && isEnd) {
-                        trie = trie.multiSegmentWildcard!!.first
-                        break
-                    } else {
-                        wildcardUse += 1
-                        continue
-                    }
-                } else {
-                    wildcardUse += 1
-                    if (isEnd) {
-                        trie = trie.multiSegmentWildcard!!.first
-                    }
-                    continue
+        return traverse(segments.subList(1, segments.size))
+    }
+
+    /**
+     * Traverses the trie based on the path.
+     *
+     * @param segments The path segments.
+     * @return The trie node at the end or null, if we did not land on a terminal node.
+     */
+    fun traverse(segments: List<String>): PathTrie? {
+        if (segments.isEmpty()) {
+            return this
+        }
+
+        // Check if we have to recurse into ourselves
+        // TODO: I think we can just remove segments until we have find the end wildcard or the list is empty.
+        val s = segments.first()
+        if (mapping[s] == null && segment == "**") {
+            val child = this.traverse(segments.subList(1, segments.size))
+            if (child != null && child.isTerminal) {
+                return child
+            }
+        }
+
+        // Make sure that we try the wildcards last to first try matching on concrete
+        // keys.
+        val keys = mapping.keys.toMutableList()
+        val hasSingleWildcard = keys.remove("*")
+        val hasMultiWildcard = keys.remove("**")
+        if (hasSingleWildcard) {
+            keys.add("*")
+        }
+        if (hasMultiWildcard) {
+            keys.add("**")
+        }
+
+        // Try the mapping.
+        for (key in keys) {
+            val trie = mapping[key]!!
+            if (key == s || key == "*" || key == "**") {
+                val child = trie.traverse(segments.subList(1, segments.size))
+                if (child != null && child.isTerminal) {
+                    return child
                 }
             }
-
-            val child = trie.getTrie(segment) ?: return null
-            trie = child
         }
-
-        if (!trie.isTerminal) {
-            return null
-        }
-        return trie
+        return null
     }
 }
 
@@ -177,13 +179,13 @@ class RouteAuthenticationEvaluator(
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     /** The trie that holds all authenticated paths. */
-    private val pathTrie: PathTrie = PathTrie()
+    private val pathTrie: PathTrie = PathTrie("root")
 
     init {
         var addedRoutes = 0
         configs.forEach { config ->
             config.paths.forEach {
-                pathTrie.addPath(it.pathTemplate)
+                pathTrie.addPath(it.pathTemplate, it.authenticated)
                 addedRoutes++
             }
         }
@@ -197,5 +199,5 @@ class RouteAuthenticationEvaluator(
      * @param path  The path to check.
      * @return True, if the path is authenticated. False, if not.
      */
-    fun isPathAuthenticated(path: String): Boolean = pathTrie.traverse(path) != null
+    fun isPathAuthenticated(path: String): Boolean = pathTrie.traverse(path)?.getIsAuthenticated() ?: false
 }

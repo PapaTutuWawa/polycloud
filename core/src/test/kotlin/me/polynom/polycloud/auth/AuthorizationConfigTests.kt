@@ -3,6 +3,7 @@ package me.polynom.polycloud.auth
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * Unit tests for the {@link PathTrie} class.
@@ -10,8 +11,8 @@ import kotlin.test.assertNull
 class AuthorizationConfigTests {
     @Test
     fun testTrieAddingAndTraversal() {
-        val pathTrie = PathTrie()
-        pathTrie.addPath("/a/b/c")
+        val pathTrie = PathTrie("root")
+        pathTrie.addPath("/a/b/c", true)
 
         val trie = pathTrie.traverse("/a/b/c")
         assertNotNull(trie)
@@ -19,8 +20,8 @@ class AuthorizationConfigTests {
 
     @Test
     fun testTrieAddingAndTraversalNotFound() {
-        val pathTrie = PathTrie()
-        pathTrie.addPath("/a/b/c")
+        val pathTrie = PathTrie("root")
+        pathTrie.addPath("/a/b/c", true)
 
         val trie = pathTrie.traverse("/a/b/c/d")
         assertNull(trie)
@@ -28,8 +29,8 @@ class AuthorizationConfigTests {
 
     @Test
     fun testSingleWildcardTraversal() {
-        val pathTrie = PathTrie()
-        pathTrie.addPath("/a/*/c")
+        val pathTrie = PathTrie("root")
+        pathTrie.addPath("/a/*/c", true)
 
         assertNotNull(pathTrie.traverse("/a/a/c"))
         assertNotNull(pathTrie.traverse("/a/b/c"))
@@ -40,9 +41,9 @@ class AuthorizationConfigTests {
 
     @Test
     fun testSingleWildcardTraversalWithOtherPath() {
-        val pathTrie = PathTrie()
-        pathTrie.addPath("/a/*/c")
-        pathTrie.addPath("/a/b/e")
+        val pathTrie = PathTrie("root")
+        pathTrie.addPath("/a/*/c", true)
+        pathTrie.addPath("/a/b/e", true)
 
         assertNotNull(pathTrie.traverse("/a/a/c"))
         assertNotNull(pathTrie.traverse("/a/b/e"))
@@ -50,8 +51,10 @@ class AuthorizationConfigTests {
 
     @Test
     fun testMultiWildcardTraversal() {
-        val pathTrie = PathTrie()
-        pathTrie.addPath("/a/**/c")
+        val pathTrie = PathTrie("root")
+        pathTrie.addPath("/a/**/c", true)
+
+        pathTrie.debug()
 
         assertNotNull(pathTrie.traverse("/a/a/c"))
         assertNotNull(pathTrie.traverse("/a/a/a/c"))
@@ -62,8 +65,8 @@ class AuthorizationConfigTests {
 
     @Test
     fun testOpenMultiWildcardTraversal() {
-        val pathTrie = PathTrie()
-        pathTrie.addPath("/a/**")
+        val pathTrie = PathTrie("root")
+        pathTrie.addPath("/a/**", true)
 
         assertNull(pathTrie.traverse("/a"))
         assertNotNull(pathTrie.traverse("/a/a"))
@@ -73,10 +76,10 @@ class AuthorizationConfigTests {
 
     @Test
     fun testMultipleRoutes() {
-        val pathTrie = PathTrie()
-        pathTrie.addPath("/a/b/c")
-        pathTrie.addPath("/a/b/d")
-        pathTrie.addPath("/c")
+        val pathTrie = PathTrie("root")
+        pathTrie.addPath("/a/b/c", true)
+        pathTrie.addPath("/a/b/d", true)
+        pathTrie.addPath("/c", true)
 
         assertNotNull(pathTrie.traverse("/a/b/c"))
         assertNull(pathTrie.traverse("/a/b/c/d"))
@@ -88,5 +91,16 @@ class AuthorizationConfigTests {
 
         assertNotNull(pathTrie.traverse("/c"))
         assertNull(pathTrie.traverse("/c/a"))
+    }
+
+    @Test
+    fun testCatchAll() {
+        val pathTrie = PathTrie("root")
+        pathTrie.addPath("/**", true)
+        pathTrie.addPath("/a/b/d", false)
+
+        assertTrue(pathTrie.traverse("/a/b/c")!!.getIsAuthenticated())
+        assertTrue(pathTrie.traverse("/a/b")!!.getIsAuthenticated())
+        assertTrue(!pathTrie.traverse("/a/b/d")!!.getIsAuthenticated())
     }
 }
