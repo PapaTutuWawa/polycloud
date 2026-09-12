@@ -2,6 +2,7 @@ package me.polynom.polycloud.apps.example
 
 import me.polynom.polycloud.apps.example.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.example.dto.ExampleResponseDto
+import me.polynom.polycloud.plugin.PolycloudPlugin
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,11 +14,11 @@ import org.springframework.web.bind.annotation.RestController
 @PluginEnabled
 @RestController
 @RequestMapping("/api/apps/example")
-class ExamplePlugin {
+class ExamplePlugin : PolycloudPlugin {
     /** Logger. */
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    constructor() {
+    override fun register() {
         logger.info("Example plugin loaded!")
     }
 
