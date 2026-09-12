@@ -4,7 +4,6 @@ import me.polynom.polycloud.plugin.security.AuthenticatedPath
 import me.polynom.polycloud.plugin.security.PathAuthenticationConfig
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.annotation.Order
 
 /**
  * Web security configuration.
@@ -15,7 +14,6 @@ class SecurityConfig {
      * Configuration of authenticated routes of the core API.
      */
     @Bean
-    @Order(1)
     fun coreSecurityConfig() =
         PathAuthenticationConfig(
             paths =
