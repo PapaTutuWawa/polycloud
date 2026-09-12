@@ -6,11 +6,12 @@ import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
 import me.polynom.polycloud.auth.AuthenticationData
+import me.polynom.polycloud.auth.AuthenticationManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
-import me.polynom.polycloud.plugin.auth.AuthenticationManager as PluginAuthenticationManager
+import org.springframework.web.context.request.RequestContextHolder
 
 /**
  * Filter that finds out what authentication mechanism should be used.
@@ -19,7 +20,7 @@ import me.polynom.polycloud.plugin.auth.AuthenticationManager as PluginAuthentic
 @Order(1)
 class AuthenticationFilter(
     /** The authentication manager. */
-    private val manager: PluginAuthenticationManager,
+    private val manager: AuthenticationManager,
 ) : Filter {
     /** Logger. */
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
@@ -51,6 +52,11 @@ class AuthenticationFilter(
 
         logger.debug("Adding [{}] as authentication", result)
         request.setAttribute(AuthenticationData.REQUEST_ATTRIBUTE, result)
+        RequestContextHolder.currentRequestAttributes().setAttribute(
+            AuthenticationData.REQUEST_ATTRIBUTE,
+            result,
+            0,
+        )
         filterChain.doFilter(request, response)
     }
 }

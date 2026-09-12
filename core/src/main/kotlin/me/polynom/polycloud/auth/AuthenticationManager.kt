@@ -1,6 +1,5 @@
 package me.polynom.polycloud.auth
 
-import me.polynom.polycloud.plugin.auth.AuthenticationManager
 import me.polynom.polycloud.plugin.auth.PolycloudAuthPlugin
 import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 import org.slf4j.LoggerFactory
@@ -10,14 +9,14 @@ import org.springframework.stereotype.Service
  * Bean dealing with authentication checks.
  */
 @Service
-class PolycloudAuthenticationManager(
+class AuthenticationManager(
     /** List of available authentication plugins. */
     private val authPlugins: List<PolycloudAuthPlugin>,
-) : AuthenticationManager {
+) {
     /** Logger. */
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun authenticate(token: String): AuthVerificationResult? {
+    fun authenticate(token: String): AuthVerificationResult? {
         val parts = token.split(" ")
         if (parts.size != 2) {
             logger.warn("Token is of wrong format. Expected 2 parts, got [{}]", parts.size)

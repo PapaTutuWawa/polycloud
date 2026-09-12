@@ -5,13 +5,11 @@ import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 /**
  * Interface of the bean that provides the authentication manager.
  */
-interface AuthenticationManager {
+interface UserContext {
     /**
-     * Authenticates the user using the provided token by delegating to
-     * the handling auth plugin.
+     * Returns the user that did the current request.
      *
-     * @param token The provided auth token.
      * @return A populated {@link AuthVerificationResult} if the request is authenticated. Null, if not.
      */
-    fun authenticate(token: String): AuthVerificationResult?
+    fun getUser(): AuthVerificationResult?
 }
