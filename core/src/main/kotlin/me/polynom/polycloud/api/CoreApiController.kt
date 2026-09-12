@@ -40,6 +40,7 @@ class CoreApiController(
                     AuthMechanismDto(
                         id = it.javaClass.name,
                         displayName = data.displayName,
+                        data = data.data,
                     )
                 },
         )

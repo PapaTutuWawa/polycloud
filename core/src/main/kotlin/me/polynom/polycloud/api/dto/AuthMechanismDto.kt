@@ -11,4 +11,6 @@ data class AuthMechanismDto(
     val id: String,
     /** The display name of the mechanism. */
     val displayName: String,
+    /** Data provided by the plugin. */
+    val data: Map<String, String>?,
 )
