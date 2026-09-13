@@ -14,4 +14,6 @@ data class CalendarDto(
     val owner: String,
     /** The color of the calendar (hex code). */
     val color: String,
+    /** Is the calendar public. */
+    val public: Boolean,
 )

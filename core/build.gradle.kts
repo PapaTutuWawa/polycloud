@@ -5,7 +5,6 @@ plugins {
     kotlin("plugin.spring") version "2.3.21"
     id("org.springframework.boot") version "4.1.1"
     id("io.spring.dependency-management") version "1.1.7"
-    kotlin("plugin.lombok") version "2.4.0"
     id("com.diffplug.spotless") version "8.10.2"
 }
 
@@ -36,8 +35,12 @@ dependencies {
     // Allow generating OpenAPI specs
     developmentOnly("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
 
+    // Just use PostgreSQL for development
+    developmentOnly("org.postgresql:postgresql:42.7.13")
+
     // SpringBoot
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-kotlinx-serialization-json")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
