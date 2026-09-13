@@ -8,7 +8,7 @@ import kotlin.test.assertTrue
 /**
  * Unit tests for the {@link PathTrie} class.
  */
-class AuthorizationConfigTests {
+class PathTrieTests {
     @Test
     fun testTrieAddingAndTraversal() {
         val pathTrie = PathTrie("root")
