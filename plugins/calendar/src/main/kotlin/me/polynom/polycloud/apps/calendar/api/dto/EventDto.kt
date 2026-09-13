@@ -14,6 +14,10 @@ data class EventDto(
     val description: String?,
     /** The UUID of the calendar this event belongs to. */
     val calendar: String,
-    /** The time of the event. */
-    val datetime: ZonedDateTime,
+    /** The start time of the event. */
+    val start: ZonedDateTime,
+    /** The end time of the event */
+    val end: ZonedDateTime,
+    /** Place where the event takes place. */
+    val place: String?,
 )

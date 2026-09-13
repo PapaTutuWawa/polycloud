@@ -17,7 +17,7 @@ open class CalendarSecurityConfig {
         = PathAuthenticationConfig(
             paths = listOf(
                 AuthenticatedPath("/api/apps/calendar/calendar/*", authenticated = false),
-                AuthenticatedPath("/api/apps/calendar/calendar/*/event", authenticated = false),
+                AuthenticatedPath("/api/apps/calendar/calendar/*/events", authenticated = false),
             )
         )
 }

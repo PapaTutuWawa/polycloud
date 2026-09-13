@@ -121,7 +121,9 @@ class CalendarService(
             calendar = calendarId,
             title = eventCreationRequest.title,
             description = eventCreationRequest.description,
-            datetime = eventCreationRequest.datetime,
+            start = eventCreationRequest.start,
+            end = eventCreationRequest.end,
+            place = eventCreationRequest.place,
         )
         eventRepository.save(entity)
         return ResponseEntity.ok(eventMapper.eventToEventDto(entity))
