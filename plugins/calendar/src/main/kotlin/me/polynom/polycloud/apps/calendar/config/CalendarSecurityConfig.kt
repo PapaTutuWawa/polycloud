@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 /**
- *
+ * Security configuration for the calendar plugin.
  */
 @Configuration
 @PluginEnabled
