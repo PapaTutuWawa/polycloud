@@ -12,6 +12,7 @@ me:
           enabled: true
         files:
           enabled: true
+          backends:
         auth:
           stub:
             enabled: true
