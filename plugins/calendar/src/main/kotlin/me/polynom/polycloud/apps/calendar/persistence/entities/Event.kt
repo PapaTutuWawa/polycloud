@@ -1,6 +1,7 @@
 package me.polynom.polycloud.apps.calendar.persistence.entities
 
 import jakarta.annotation.Nullable
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -32,6 +33,17 @@ class Event(
     @Nullable
     var description: String? = null,
 
-    /** Time of the event. */
-    var datetime: ZonedDateTime? = null,
+    /** Start time of the event. */
+    @NotNull
+    @Column(name = "start_time")
+    var start: ZonedDateTime? = null,
+
+    /** End time of the event. */
+    @NotNull
+    @Column(name = "end_time")
+    var end: ZonedDateTime? = null,
+
+    /** The place where the event occurs. */
+    @Nullable
+    var place: String? = null,
 )

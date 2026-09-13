@@ -15,7 +15,9 @@ CREATE TABLE IF NOT EXISTS event (
     calendar    UUID NOT NULL,
     title       TEXT NOT NULL,
     description TEXT,
-    datetime    TIMESTAMP WITH TIME ZONE NOT NULL,
+    start_time  TIMESTAMP WITH TIME ZONE NOT NULL,
+    end_time    TIMESTAMP WITH TIME ZONE NOT NULL,
+    place       TEXT,
     CONSTRAINT fk_calendar
         FOREIGN KEY (calendar)
         REFERENCES calendar (id)

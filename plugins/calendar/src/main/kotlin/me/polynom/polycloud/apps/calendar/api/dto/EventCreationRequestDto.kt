@@ -13,7 +13,12 @@ data class EventCreationRequestDto(
     val title: String,
     /** The description of the event. */
     val description: String?,
-    /** The time of the event. */
+    /** The start time of the event. */
     @Serializable(with = ZonedDateTimeSerializer::class)
-    val datetime: ZonedDateTime,
+    val start: ZonedDateTime,
+    /** The end time of the event. */
+    @Serializable(with = ZonedDateTimeSerializer::class)
+    val end: ZonedDateTime,
+    /** Place where the event takes place. */
+    val place: String?,
 )
