@@ -7,6 +7,9 @@ object AuthenticationData {
     /** The header to use for authentication. */
     const val HEADER = "Authorization"
 
-    /** The key in the request properties. */
-    const val REQUEST_ATTRIBUTE = "authorization"
+    /** Key in the request properties that contains the plugin auth response. */
+    const val REQUEST_ATTRIBUTE_RESULT = "authorization"
+
+    /** Key in the request properties that indicates that the client tried to authenticate. */
+    const val REQUEST_ATTRIBUTE_PRESENT = "authorization-present"
 }

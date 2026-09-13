@@ -37,6 +37,10 @@ class AuthenticationFilter(
         }
 
         val header = request.getHeader(AuthenticationData.HEADER)
+        request.setAttribute(
+            AuthenticationData.REQUEST_ATTRIBUTE_PRESENT,
+            header != null,
+        )
         if (header?.isEmpty() ?: true) {
             logger.debug("No Authorization header, skipping")
             filterChain.doFilter(request, response)
@@ -51,9 +55,9 @@ class AuthenticationFilter(
         }
 
         logger.debug("Adding [{}] as authentication", result)
-        request.setAttribute(AuthenticationData.REQUEST_ATTRIBUTE, result)
+        request.setAttribute(AuthenticationData.REQUEST_ATTRIBUTE_RESULT, result)
         RequestContextHolder.currentRequestAttributes().setAttribute(
-            AuthenticationData.REQUEST_ATTRIBUTE,
+            AuthenticationData.REQUEST_ATTRIBUTE_RESULT,
             result,
             0,
         )
