@@ -49,7 +49,7 @@ class PostAuthenticationFilter(
         logger.debug("Checking authentication using [{}]", auth)
         if (auth == null) {
             logger.debug("Rejecting request to [{}] because there is no authentication data", request.servletPath)
-            httpResponse.status = 403
+            httpResponse.status = 401
             return
         }
 
