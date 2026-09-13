@@ -15,6 +15,7 @@ import me.polynom.polycloud.plugin.auth.UserContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.transaction.TransactionStatus
@@ -152,9 +153,20 @@ class CalendarService(
      * @return A {@link ResponseEntity} that only sets the status code.
      */
     fun deleteCalendar(calendarId: UUID): ResponseEntity<Void> {
+        // This endpoint must be authenticated.
+        if (userContext.getUser() == null) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+
+        // Get the calendar.
         val calendar = getCalendarByIdWithAccessCheck(calendarId)
         if (calendar.first == null) {
             return ResponseEntity.status(calendar.second).build()
+        }
+
+        // Only the owner can delete the calendar.
+        if (calendar.first!!.owner != userContext.getUser()!!.username) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
         calendarRepository.deleteById(calendarId)
