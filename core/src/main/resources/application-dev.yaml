@@ -14,6 +14,8 @@ me:
           enabled: true
         calendar:
           enabled: true
+          storage:
+            local:
         auth:
           stub:
             enabled: true
