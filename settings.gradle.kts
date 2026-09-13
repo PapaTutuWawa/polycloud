@@ -22,3 +22,7 @@ project(":stubAuth").projectDir = file("plugins/stubAuth")
 // Files
 include("files")
 project(":files").projectDir = file("plugins/files")
+
+// Calendar
+include("calendar")
+project(":calendar").projectDir = file("plugins/calendar")

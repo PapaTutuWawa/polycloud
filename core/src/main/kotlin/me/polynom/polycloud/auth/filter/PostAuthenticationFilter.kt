@@ -15,7 +15,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 /**
- * Filter that returns a 403 if the user is not authenticated.
+ * Filter that returns a 401 if the user is not authenticated.
  */
 @Component
 @Order(2)
@@ -45,11 +45,16 @@ class PostAuthenticationFilter(
             return
         }
 
-        val auth = request.getAttribute(AuthenticationData.REQUEST_ATTRIBUTE) as AuthVerificationResult?
+        val auth = request.getAttribute(AuthenticationData.REQUEST_ATTRIBUTE_RESULT) as AuthVerificationResult?
         logger.debug("Checking authentication using [{}]", auth)
         if (auth == null) {
             logger.debug("Rejecting request to [{}] because there is no authentication data", request.servletPath)
-            httpResponse.status = 403
+
+            // Return a 401, if the client did not provide authentication at all, and a 403 if it was wrong.
+            httpResponse.status = if (!(request.getAttribute(AuthenticationData.REQUEST_ATTRIBUTE_PRESENT) as Boolean))
+                401
+            else
+                403
             return
         }
 
