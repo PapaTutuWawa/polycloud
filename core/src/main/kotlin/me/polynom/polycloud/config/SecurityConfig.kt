@@ -20,7 +20,11 @@ class SecurityConfig {
                 listOf(
                     AuthenticatedPath("/**"),
                     AuthenticatedPath("/api/v1/public/**", authenticated = false),
+                    // Actuator
                     AuthenticatedPath("/actuator/**", authenticated = false),
+                    // API Docs
+                    AuthenticatedPath("/v3/**", authenticated = false),
+                    AuthenticatedPath("/swagger-ui/**", authenticated = false),
                 ),
         )
 }

@@ -12,6 +12,8 @@ me:
           enabled: true
         files:
           enabled: true
+        calendar:
+          enabled: true
         auth:
           stub:
             enabled: true

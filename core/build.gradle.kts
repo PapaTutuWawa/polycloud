@@ -31,6 +31,10 @@ dependencies {
     developmentOnly(project(":examplePlugin"))
     developmentOnly(project(":files"))
     developmentOnly(project(":stubAuth"))
+    developmentOnly(project(":calendar"))
+
+    // Allow generating OpenAPI specs
+    developmentOnly("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
 
     // SpringBoot
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
