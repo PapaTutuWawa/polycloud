@@ -5,6 +5,7 @@ import me.polynom.polycloud.apps.files.storage.Storage
 import me.polynom.polycloud.apps.files.storage.StoragePath
 import org.apache.tomcat.util.http.fileupload.FileUtils
 import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.FileInputStream
 import java.io.InputStream
 import java.io.OutputStream
@@ -72,7 +73,7 @@ class LocalStorage (val root: Path, val shared: Boolean) : Storage {
         val path = resolvePath(user, path)
 
         Files.createDirectories(path.parent)
-        Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING).use { fileStream ->
+        BufferedOutputStream(Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)).use { fileStream ->
             data.use {
                 it.transferTo(fileStream)
             }
