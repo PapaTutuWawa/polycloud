@@ -12,6 +12,8 @@ me:
           enabled: true
         files:
           enabled: true
+          storage:
+            local:
         auth:
           stub:
             enabled: true
