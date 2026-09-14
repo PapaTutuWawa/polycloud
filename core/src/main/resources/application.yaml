@@ -1,6 +1,9 @@
 spring:
   application:
     name: polycloud
+  servlet:
+    multipart:
+      enabled: false
 
 server:
   port: 9090
