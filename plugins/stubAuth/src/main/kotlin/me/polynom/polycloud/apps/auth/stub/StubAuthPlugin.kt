@@ -49,15 +49,13 @@ class StubAuthPlugin(
             return ResponseEntity.status(401).build()
         }
 
-        val parts = authHeader.split(" ")
-        if (parts[0] != "Basic") {
+        if (!authHeader.startsWith("Basic ")) {
             return ResponseEntity.status(401).build()
         }
 
         // User: user
         // Password: user
-        val credentials = "dXNlcjp1c2Vy"
-        if (parts[1] == credentials) {
+        if (authHeader.substring(6) == "dXNlcjp1c2Vy") {
             val token =
                 jwtService.generateToken(
                     "user",
