@@ -19,6 +19,8 @@ data class EventCreationRequestDto(
     /** The end time of the event. */
     @Serializable(with = ZonedDateTimeSerializer::class)
     val end: ZonedDateTime,
+    /** Flag indicating an all-day event. */
+    val allDay: Boolean,
     /** Place where the event takes place. */
     val place: String?,
 )

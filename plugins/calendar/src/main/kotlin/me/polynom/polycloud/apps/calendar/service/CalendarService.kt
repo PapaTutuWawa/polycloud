@@ -1,5 +1,6 @@
 package me.polynom.polycloud.apps.calendar.service
 
+import io.hypersistence.utils.hibernate.type.range.Range
 import me.polynom.polycloud.apps.calendar.api.dto.CalendarCreationRequestDto
 import me.polynom.polycloud.apps.calendar.api.dto.CalendarDto
 import me.polynom.polycloud.apps.calendar.api.dto.EventCreationRequestDto
@@ -19,6 +20,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.*
 
 /**
@@ -119,8 +123,8 @@ class CalendarService(
             calendar = calendarId,
             title = eventCreationRequest.title,
             description = eventCreationRequest.description,
-            start = eventCreationRequest.start,
-            end = eventCreationRequest.end,
+            timeframe = Range.closed(eventCreationRequest.start, eventCreationRequest.end),
+            allDay = eventCreationRequest.allDay,
             place = eventCreationRequest.place,
         )
         eventRepository.save(entity)
@@ -133,17 +137,42 @@ class CalendarService(
      * @param calendarId    The ID of the calendar.
      * @return A {@link ResponseEntity} that may or may not contain the event list.
      */
-    fun getEvents(calendarId: UUID): ResponseEntity<List<EventDto>> {
-        val calendar = getCalendarByIdWithAccessCheck(calendarId)
-        if (calendar.first == null) {
-            return ResponseEntity.status(calendar.second).build()
+    fun getEvents(
+        calendarId: UUID,
+        start: Long?,
+        end: Long?,
+        timezone: String?,
+    ): ResponseEntity<List<EventDto>> {
+        if (start == null && end == null && timezone == null) {
+            // Query all events
+            val calendar = getCalendarByIdWithAccessCheck(calendarId)
+            if (calendar.first == null) {
+                return ResponseEntity.status(calendar.second).build()
+            }
+
+            return ResponseEntity.ok(
+                eventRepository
+                    .findAllByCalendar(calendarId)
+                    .map(eventMapper::eventToEventDto))
+        } else if (start != null && end != null && timezone != null) {
+            // Query only events between start and end
+            val calendar = getCalendarByIdWithAccessCheck(calendarId)
+            if (calendar.first == null) {
+                return ResponseEntity.status(calendar.second).build()
+            }
+
+            val zone = ZoneId.of(timezone)
+            val startZdt = ZonedDateTime.ofInstant(Instant.ofEpochSecond(start), zone)
+            val endZdt = ZonedDateTime.ofInstant(Instant.ofEpochSecond(end), zone)
+            val range = Range.closed(startZdt, endZdt)
+
+            return ResponseEntity.ok(
+                eventRepository
+                    .findAllByCalenderIdAndTimeframeOverlapWithTimeframe(calendarId, range)
+                    .map(eventMapper::eventToEventDto))
         }
 
-        return ResponseEntity.ok(
-            eventRepository
-                .findAllByCalendar(calendarId)
-                .map(eventMapper::eventToEventDto)
-        )
+        return ResponseEntity.status(400).build()
     }
 
     /**

@@ -31,6 +31,7 @@ dependencies {
     // Data JPA
     compileOnly("org.springframework.boot:spring-boot-starter-data-jpa:4.1.1")
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa:4.1.1")
+    implementation("io.hypersistence:hypersistence-utils-hibernate-73:3.15.4")
 
     // Mapstruct
     implementation("org.mapstruct:mapstruct:1.6.3")

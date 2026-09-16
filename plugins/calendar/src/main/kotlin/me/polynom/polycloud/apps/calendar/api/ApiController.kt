@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
@@ -65,6 +66,11 @@ class ApiController(
 
     @Operation(summary = "Lists events in a calendar.")
     @GetMapping("/calendar/{calendarId}/events")
-    fun createEvent(@PathVariable calendarId: UUID): ResponseEntity<List<EventDto>>
-            = service.getEvents(calendarId)
+    fun getEvents(
+        @PathVariable calendarId: UUID,
+        @RequestParam("start") start: Long?,
+        @RequestParam("end") end: Long?,
+        @RequestParam("tz") timezone: String?,
+    ): ResponseEntity<List<EventDto>>
+            = service.getEvents(calendarId, start, end, timezone)
 }
