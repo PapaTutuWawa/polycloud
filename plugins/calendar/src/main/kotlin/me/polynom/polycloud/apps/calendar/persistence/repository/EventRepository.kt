@@ -24,7 +24,10 @@ interface EventRepository : CrudRepository<Event, UUID> {
      * @param calendar  The calendar's UUID.
      * @param id        The event's UUID.
      */
-    fun deleteByCalendarAndId(calendar: UUID, id: UUID)
+    fun deleteByCalendarAndId(
+        calendar: UUID,
+        id: UUID,
+    )
 
     /**
      * Finds all events that somehow overlap with the specified timeframe.
@@ -32,7 +35,8 @@ interface EventRepository : CrudRepository<Event, UUID> {
      * @param calendarId    The UUID of the calendar.
      * @param timeframe     The timeframe that has to overlap the event's duration.
      */
-    @NativeQuery("""
+    @NativeQuery(
+        """
         SELECT
             *
         FROM
@@ -40,6 +44,10 @@ interface EventRepository : CrudRepository<Event, UUID> {
         WHERE
             calendar = ?1 AND
             timeframe && ?2
-        """)
-    fun findAllByCalenderIdAndTimeframeOverlapWithTimeframe(calendarId: UUID, timeframe: Range<ZonedDateTime>): List<Event>
+        """,
+    )
+    fun findAllByCalenderIdAndTimeframeOverlapWithTimeframe(
+        calendarId: UUID,
+        timeframe: Range<ZonedDateTime>,
+    ): List<Event>
 }

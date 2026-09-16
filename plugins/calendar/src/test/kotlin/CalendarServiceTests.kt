@@ -39,13 +39,15 @@ class CalendarServiceTests {
     private lateinit var transactionTemplate: TransactionTemplate
 
     private val calendarService: CalendarService
-        get() = CalendarService(
-            calendarRepo,
-            eventRepo,
-            userContext,
-            calendarMapper,
-            eventMapper,
-            transactionTemplate)
+        get() =
+            CalendarService(
+                calendarRepo,
+                eventRepo,
+                userContext,
+                calendarMapper,
+                eventMapper,
+                transactionTemplate,
+            )
 
     @Test
     fun test_getCalenderByIdWithAccessCheck_unauthenticated_calendarExists_nonPublic() {

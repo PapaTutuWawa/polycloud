@@ -6,5 +6,4 @@ import org.springframework.context.annotation.Import
 
 @Configuration
 @EntityScan("me.polynom.polycloud.apps.calendar")
-open class TestConfig {
-}
+open class TestConfig

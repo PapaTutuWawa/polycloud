@@ -27,9 +27,7 @@ class PathTrie(
      * @param segment   The next segment.
      * @return The next trie node or null, if the segment does not exist in the node.
      */
-    fun getTrie(segment: String): PathTrie? {
-        return mapping[segment]
-    }
+    fun getTrie(segment: String): PathTrie? = mapping[segment]
 
     fun debug(indent: Int = 0) {
         val textIndent = " ".repeat(4 * indent)

@@ -7,6 +7,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
  */
 @ConditionalOnProperty(
     name = ["me.polynom.polycloud.auth.oidc.enabled"],
-    havingValue = "true"
+    havingValue = "true",
 )
-annotation class PluginEnabled {}
+annotation class PluginEnabled
