@@ -125,13 +125,14 @@ class OIDCAuthPlugin(
                 .build()
         try {
             val decoded = verifier.verify(t)
+            val username = decoded.getClaim(config.usernameClaim).asString()
             val polycloudJwt =
-                jwtService.generateToken(
-                    decoded.getClaim(config.usernameClaim).asString(),
+                jwtService.generateAuthToken(
+                    username,
                     decoded.getClaim(config.rolesClaim).asList(String::class.java),
-                    emptyMap(),
                 )
-            return ResponseEntity.ok(polycloudJwt)
+            jwtService.saveRefreshToken(username, polycloudJwt.refreshToken)
+            return ResponseEntity.ok(polycloudJwt.authToken)
         } catch (e: JWTVerificationException) {
             logger.warn("JWTVerificationException", e)
             return ResponseEntity.status(403).build()

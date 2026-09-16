@@ -1,6 +1,7 @@
 package me.polynom.polycloud.apps.auth.stub
 
 import me.polynom.polycloud.apps.auth.stub.autoconfigure.PluginEnabled
+import me.polynom.polycloud.apps.auth.stub.dto.AuthResult
 import me.polynom.polycloud.plugin.auth.JwtService
 import me.polynom.polycloud.plugin.auth.PolycloudAuthPlugin
 import me.polynom.polycloud.plugin.auth.dto.AuthPluginData
@@ -44,7 +45,7 @@ class StubAuthPlugin(
     @PostMapping("/authenticate")
     fun authenticate(
         @RequestHeader("Authorization") authHeader: String?,
-    ): ResponseEntity<String> {
+    ): ResponseEntity<AuthResult> {
         if (authHeader == null) {
             return ResponseEntity.status(401).build()
         }
@@ -57,12 +58,23 @@ class StubAuthPlugin(
         // Password: user
         if (authHeader.substring(6) == "dXNlcjp1c2Vy") {
             val token =
-                jwtService.generateToken(
+                jwtService.generateAuthToken(
                     "user",
                     listOf("admin"),
-                    emptyMap(),
                 )
-            return ResponseEntity.ok(token)
+            jwtService.saveRefreshToken("user", token.refreshToken)
+            return ResponseEntity.ok(
+                AuthResult(
+                    auth = AuthResult.Token(
+                        token.authToken,
+                        token.authTokenExpiryIn,
+                    ),
+                    refresh = AuthResult.Token(
+                        token.refreshToken,
+                        token.refreshTokenExpiryIn,
+                    ),
+                )
+            )
         }
 
         return ResponseEntity.status(403).build()

@@ -20,6 +20,8 @@ class SecurityConfig {
                 listOf(
                     AuthenticatedPath("/**"),
                     AuthenticatedPath("/api/v1/public/**", authenticated = false),
+                    // Authentication
+                    AuthenticatedPath("/api/v1/auth/jwt/refresh", authenticated = false),
                     // Actuator
                     AuthenticatedPath("/actuator/**", authenticated = false),
                     // API Docs
