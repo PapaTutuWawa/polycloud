@@ -14,9 +14,11 @@ me:
           enabled: true
         calendar:
           enabled: true
-        auth:
-          stub:
-            enabled: true
+      auth:
+        jwt:
+          secret: abc123
+        stub:
+          enabled: true
 
 # Enable debug logging for everything polycloud
 logging:

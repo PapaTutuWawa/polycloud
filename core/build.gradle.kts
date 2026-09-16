@@ -44,6 +44,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-kotlinx-serialization-json")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
+    // JWT
+    implementation("com.auth0:java-jwt:4.6.0")
+
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")

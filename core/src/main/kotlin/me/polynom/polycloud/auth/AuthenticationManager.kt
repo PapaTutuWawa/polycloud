@@ -23,7 +23,12 @@ class AuthenticationManager(
             return null
         }
 
-        val plugin = authPlugins.find { it.getData().scheme == parts[0] }
+        val plugin =
+            authPlugins.find a@{
+                // Exclude plugins that do not register a scheme.
+                val scheme = it.getData().scheme ?: return@a false
+                scheme == parts[0]
+            }
         if (plugin == null) {
             return null
         }
