@@ -45,7 +45,7 @@ class OIDCAuthPlugin(
     override fun getData(): AuthPluginData =
         AuthPluginData(
             "oidc",
-            "Bearer",
+            null,
             config.displayName,
             config.displayIcon,
             mapOf(

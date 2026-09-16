@@ -5,6 +5,7 @@ import me.polynom.polycloud.api.dto.AuthMechanismsDto
 import me.polynom.polycloud.api.dto.EnabledAppDto
 import me.polynom.polycloud.api.dto.EnabledAppsDto
 import me.polynom.polycloud.api.dto.HealthDto
+import me.polynom.polycloud.auth.jwt.JwtAuthPlugin
 import me.polynom.polycloud.plugin.PolycloudPlugin
 import me.polynom.polycloud.plugin.auth.PolycloudAuthPlugin
 import org.springframework.web.bind.annotation.GetMapping
@@ -35,14 +36,18 @@ class CoreApiController(
     fun authMechanisms() =
         AuthMechanismsDto(
             mechanisms =
-                authPlugins.map {
-                    val data = it.getData()
-                    AuthMechanismDto(
-                        id = it.javaClass.name,
-                        displayName = data.displayName,
-                        data = data.data,
-                    )
-                },
+                authPlugins
+                    .filter {
+                        // Exclude the middleware auth
+                        it !is JwtAuthPlugin
+                    }.map {
+                        val data = it.getData()
+                        AuthMechanismDto(
+                            id = it.javaClass.name,
+                            displayName = data.displayName,
+                            data = data.data,
+                        )
+                    },
         )
 
     @GetMapping("/apps")

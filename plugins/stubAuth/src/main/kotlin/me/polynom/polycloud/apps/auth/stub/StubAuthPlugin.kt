@@ -1,43 +1,72 @@
 package me.polynom.polycloud.apps.auth.stub
 
 import me.polynom.polycloud.apps.auth.stub.autoconfigure.PluginEnabled
+import me.polynom.polycloud.plugin.auth.JwtService
 import me.polynom.polycloud.plugin.auth.PolycloudAuthPlugin
 import me.polynom.polycloud.plugin.auth.dto.AuthPluginData
 import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 /**
  * A simple stub authentication method that only allows a hardcoded credential
  * pair.
  */
 @PluginEnabled
-@Service
-class StubAuthPlugin : PolycloudAuthPlugin {
+@RestController
+@RequestMapping("/api/auth/stub")
+class StubAuthPlugin(
+    /** The JWT service. */
+    private val jwtService: JwtService,
+) : PolycloudAuthPlugin {
     /** Logger. */
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun getData(): AuthPluginData =
         AuthPluginData(
             pluginName = javaClass.name,
-            scheme = "Stub",
+            scheme = null,
             displayName = "Stub Login",
             null,
             null,
         )
 
-    override fun verify(token: String): AuthVerificationResult? {
-        if (token == "Stub example") {
-            return AuthVerificationResult(
-                username = "admin",
-                roles = listOf("admin", "user"),
-            )
-        }
-
-        return null
-    }
+    override fun verify(token: String): AuthVerificationResult? = null
 
     override fun register() {
         logger.info("StubAuthPlugin registered")
+    }
+
+    @PostMapping("/authenticate")
+    fun authenticate(
+        @RequestHeader("Authorization") authHeader: String?,
+    ): ResponseEntity<String> {
+        if (authHeader == null) {
+            return ResponseEntity.status(401).build()
+        }
+
+        val parts = authHeader.split(" ")
+        if (parts[0] != "Basic") {
+            return ResponseEntity.status(401).build()
+        }
+
+        // User: user
+        // Password: user
+        val credentials = "dXNlcjp1c2Vy"
+        if (parts[1] == credentials) {
+            val token =
+                jwtService.generateToken(
+                    "user",
+                    listOf("admin"),
+                    emptyMap(),
+                )
+            return ResponseEntity.ok(token)
+        }
+
+        return ResponseEntity.status(403).build()
     }
 }

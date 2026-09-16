@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Profile
  * *AND* the active profiles include "dev" or "test".
  */
 @ConditionalOnProperty(
-    name = ["me.polynom.polycloud.apps.auth.stub.enabled"],
+    name = ["me.polynom.polycloud.auth.stub.enabled"],
     havingValue = "true",
 )
 @Profile("dev", "test")
