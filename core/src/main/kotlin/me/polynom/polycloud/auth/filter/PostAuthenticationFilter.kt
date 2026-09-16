@@ -51,10 +51,12 @@ class PostAuthenticationFilter(
             logger.debug("Rejecting request to [{}] because there is no authentication data", request.servletPath)
 
             // Return a 401, if the client did not provide authentication at all, and a 403 if it was wrong.
-            httpResponse.status = if (!(request.getAttribute(AuthenticationData.REQUEST_ATTRIBUTE_PRESENT) as Boolean))
-                401
-            else
-                403
+            httpResponse.status =
+                if (!(request.getAttribute(AuthenticationData.REQUEST_ATTRIBUTE_PRESENT) as Boolean)) {
+                    401
+                } else {
+                    403
+                }
             return
         }
 

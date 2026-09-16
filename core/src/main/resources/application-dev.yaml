@@ -22,8 +22,8 @@ me:
 logging:
   level:
     me.polynom.polycloud: debug
-
-# Spring Data config
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres

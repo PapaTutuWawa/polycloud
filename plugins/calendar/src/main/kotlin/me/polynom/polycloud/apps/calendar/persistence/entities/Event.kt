@@ -1,5 +1,7 @@
 package me.polynom.polycloud.apps.calendar.persistence.entities
 
+import io.hypersistence.utils.hibernate.type.range.PostgreSQLRangeType
+import io.hypersistence.utils.hibernate.type.range.Range
 import jakarta.annotation.Nullable
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -8,6 +10,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.validation.constraints.NotNull
+import org.hibernate.annotations.Type
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -33,15 +36,16 @@ class Event(
     @Nullable
     var description: String? = null,
 
-    /** Start time of the event. */
+    /** Timerange of the event. */
     @NotNull
-    @Column(name = "start_time")
-    var start: ZonedDateTime? = null,
+    @Column(name = "timeframe")
+    @Type(PostgreSQLRangeType::class)
+    var timeframe: Range<ZonedDateTime>? = null,
 
-    /** End time of the event. */
+    /** Is the event an all-day event? */
     @NotNull
-    @Column(name = "end_time")
-    var end: ZonedDateTime? = null,
+    @Column(name = "all_day")
+    var allDay: Boolean? = null,
 
     /** The place where the event occurs. */
     @Nullable
