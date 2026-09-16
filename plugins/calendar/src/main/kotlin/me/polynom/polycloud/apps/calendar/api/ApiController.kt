@@ -40,29 +40,36 @@ class ApiController(
     @Operation(summary = "Creates a calendar.")
     @PostMapping("/calendar")
     @ResponseStatus(HttpStatus.CREATED)
-    fun postCalendar(@RequestBody calendar: CalendarCreationRequestDto): CalendarDto
-        = service.createCalendar(calendar)
+    fun postCalendar(
+        @RequestBody calendar: CalendarCreationRequestDto,
+    ): CalendarDto = service.createCalendar(calendar)
 
     @Operation(summary = "Gets a calendar by its ID.")
     @GetMapping("/calendar/{id}")
-    fun getCalendarById(@PathVariable id: UUID): ResponseEntity<CalendarDto>
-        = service.getCalendarById(id)
+    fun getCalendarById(
+        @PathVariable id: UUID,
+    ): ResponseEntity<CalendarDto> = service.getCalendarById(id)
 
     @Operation(summary = "Deletes a calendar.")
     @DeleteMapping("/calendar/{calendarId}")
-    fun deleteCalendar(@PathVariable calendarId: UUID): ResponseEntity<Void>
-            = service.deleteCalendar(calendarId)
+    fun deleteCalendar(
+        @PathVariable calendarId: UUID,
+    ): ResponseEntity<Void> = service.deleteCalendar(calendarId)
 
     @Operation(summary = "Creates an event.")
     @PostMapping("/calendar/{calendarId}/event")
     @ResponseStatus(HttpStatus.CREATED)
-    fun createEvent(@PathVariable calendarId: UUID, @RequestBody request: EventCreationRequestDto): ResponseEntity<EventDto>
-        = service.createEvent(calendarId, request)
+    fun createEvent(
+        @PathVariable calendarId: UUID,
+        @RequestBody request: EventCreationRequestDto,
+    ): ResponseEntity<EventDto> = service.createEvent(calendarId, request)
 
     @Operation(summary = "Deletes an event.")
     @DeleteMapping("/calendar/{calendarId}/event/{eventId}")
-    fun deleteEvent(@PathVariable calendarId: UUID, @PathVariable eventId: UUID): ResponseEntity<Void>
-            = service.deleteEvent(calendarId, eventId)
+    fun deleteEvent(
+        @PathVariable calendarId: UUID,
+        @PathVariable eventId: UUID,
+    ): ResponseEntity<Void> = service.deleteEvent(calendarId, eventId)
 
     @Operation(summary = "Lists events in a calendar.")
     @GetMapping("/calendar/{calendarId}/events")
@@ -71,6 +78,5 @@ class ApiController(
         @RequestParam("start") start: Long?,
         @RequestParam("end") end: Long?,
         @RequestParam("tz") timezone: String?,
-    ): ResponseEntity<List<EventDto>>
-            = service.getEvents(calendarId, start, end, timezone)
+    ): ResponseEntity<List<EventDto>> = service.getEvents(calendarId, start, end, timezone)
 }

@@ -1,7 +1,7 @@
 package me.polynom.polycloud.apps.auth.stub.autoconfigure
 
-import org.springframework.context.annotation.Profile
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.annotation.Profile
 
 /**
  * Annotation that enables the bean only when the stub auth plugin is enabled
@@ -12,4 +12,4 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
     havingValue = "true",
 )
 @Profile("dev", "test")
-annotation class PluginEnabled()
+annotation class PluginEnabled

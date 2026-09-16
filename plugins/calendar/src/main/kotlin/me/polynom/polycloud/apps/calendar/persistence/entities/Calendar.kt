@@ -17,19 +17,14 @@ class Calendar(
     @Id
     @GeneratedValue(GenerationType.UUID)
     var id: UUID? = null,
-
     /** The display name of the calendar. */
     var name: String? = null,
-
     /** The optional description of the calendar. */
     var description: String? = null,
-
     /** The owning user. */
     var owner: String? = null,
-
     /** The color of the calendar. */
     var color: String? = null,
-
     /** Flag controlling whether the calendar is public. */
     var public: Boolean? = null,
 )

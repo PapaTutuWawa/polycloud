@@ -23,9 +23,7 @@ import kotlin.io.path.readText
  * @param name  The file name of the migration.
  * @return The numerical version number.
  */
-private fun versionFromMigrationName(name: String): Int {
-    return name.split("__")[0].substring(1).toInt()
-}
+private fun versionFromMigrationName(name: String): Int = name.split("__")[0].substring(1).toInt()
 
 /**
  * Handles the execution of database migration scripts.
@@ -63,8 +61,7 @@ class MigrationManager(
                         name    TEXT NOT NULL
                     );
                     """.trimIndent(),
-                )
-                .executeUpdate()
+                ).executeUpdate()
             transactionManager.commit(status)
             logger.info("Ran initial database setup")
         } catch (e: Exception) {
@@ -80,12 +77,11 @@ class MigrationManager(
      * @param pluginName    The name of the plugin.
      * @return The version of the migrations for the plugin or null, if migrations for that plugin have not yet run.
      */
-    private fun getLatestMigration(pluginName: String): Int? {
-        return migrationRepository
+    private fun getLatestMigration(pluginName: String): Int? =
+        migrationRepository
             .findById(pluginName)
             .map { it.version }
             .orElse(null)
-    }
 
     /**
      * Upsert a migration record into the database.
@@ -171,11 +167,14 @@ class MigrationManager(
         val latestMigration = getLatestMigration(pluginName)
         logger.debug("Discovered [{}] as latest version for [{}]", pluginName, latestMigration)
         val migrations =
-            jar.entries().toList().filter {
-                it.name.startsWith("db/migrations/") && it.name != "db/migrations/"
-            }.map {
-                it.name.split("/").last()
-            }.toMutableList()
+            jar
+                .entries()
+                .toList()
+                .filter {
+                    it.name.startsWith("db/migrations/") && it.name != "db/migrations/"
+                }.map {
+                    it.name.split("/").last()
+                }.toMutableList()
         val migrationsToRun =
             migrations.filter filter@{
                 if (latestMigration == null) {

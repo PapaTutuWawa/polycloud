@@ -17,15 +17,14 @@ class StubAuthPlugin : PolycloudAuthPlugin {
     /** Logger. */
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun getData(): AuthPluginData {
-        return AuthPluginData(
+    override fun getData(): AuthPluginData =
+        AuthPluginData(
             pluginName = javaClass.name,
             scheme = "Stub",
             displayName = "Stub Login",
             null,
             null,
         )
-    }
 
     override fun verify(token: String): AuthVerificationResult? {
         if (token == "Stub example") {

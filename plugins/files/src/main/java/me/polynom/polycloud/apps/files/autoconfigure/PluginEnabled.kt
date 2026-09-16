@@ -10,4 +10,4 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
     name = ["me.polynom.polycloud.apps.files.enabled"],
     havingValue = "true",
 )
-annotation class PluginEnabled() {}
+annotation class PluginEnabled

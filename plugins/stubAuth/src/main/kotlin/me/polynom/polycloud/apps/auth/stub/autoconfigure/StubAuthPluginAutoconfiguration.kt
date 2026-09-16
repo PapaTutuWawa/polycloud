@@ -7,4 +7,4 @@ import org.springframework.boot.autoconfigure.AutoConfiguration
  */
 @AutoConfiguration
 @PluginEnabled
-class StubAuthPluginAutoconfiguration { }
+class StubAuthPluginAutoconfiguration

@@ -11,10 +11,9 @@ import org.springframework.web.context.request.RequestContextHolder
  */
 @Component
 class UserContextImpl : UserContext {
-    override fun getUser(): AuthVerificationResult? {
-        return RequestContextHolder.currentRequestAttributes().getAttribute(
+    override fun getUser(): AuthVerificationResult? =
+        RequestContextHolder.currentRequestAttributes().getAttribute(
             AuthenticationData.REQUEST_ATTRIBUTE_RESULT,
             0,
         ) as AuthVerificationResult?
-    }
 }

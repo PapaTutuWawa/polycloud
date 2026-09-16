@@ -13,9 +13,11 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 open class ExampleSecurityConfig {
     @Bean
-    open fun examplePluginSecurityConfig(): PathAuthenticationConfig = PathAuthenticationConfig(
-        paths = listOf(
-            AuthenticatedPath("/api/apps/example/test", authenticated = false),
+    open fun examplePluginSecurityConfig(): PathAuthenticationConfig =
+        PathAuthenticationConfig(
+            paths =
+                listOf(
+                    AuthenticatedPath("/api/apps/example/test", authenticated = false),
+                ),
         )
-    )
 }

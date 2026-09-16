@@ -9,4 +9,4 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
     name = ["me.polynom.polycloud.apps.calendar.enabled"],
     havingValue = "true",
 )
-annotation class PluginEnabled()
+annotation class PluginEnabled

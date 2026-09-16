@@ -14,6 +14,6 @@ import org.mapstruct.ReportingPolicy
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 @MapperConfig(unmappedSourcePolicy = ReportingPolicy.WARN)
 interface CalendarMapper {
-    @Mapping(source = "public", target = "public")
+    @Mapping(source = "public", target = "isPublic")
     fun calendarToCalendarDto(calendar: Calendar): CalendarDto
 }

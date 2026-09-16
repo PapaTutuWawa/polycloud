@@ -10,4 +10,4 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @AutoConfiguration
 @EnableConfigurationProperties(OIDCConfig::class)
 @PluginEnabled
-class OIDCAutoconfigure {}
+class OIDCAutoconfigure

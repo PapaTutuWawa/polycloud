@@ -42,8 +42,8 @@ class OIDCAuthPlugin(
     /** Glue between java-jwt and jwt-rsa. */
     lateinit var jwkRsaProvider: RSAKeyProvider
 
-    override fun getData(): AuthPluginData {
-        return AuthPluginData(
+    override fun getData(): AuthPluginData =
+        AuthPluginData(
             "oidc",
             "Bearer",
             config.displayName,
@@ -52,18 +52,20 @@ class OIDCAuthPlugin(
                 "url" to oidcConfig.authorize,
                 "client_id" to config.clientId,
                 "response_type" to "code",
-                "scopes" to config.scopes.joinToString(" ")
+                "scopes" to config.scopes.joinToString(" "),
             ),
         )
-    }
 
     override fun verify(token: String): AuthVerificationResult? {
         val t = token.substring(7)
-        val algo = com.auth0.jwt.algorithms.Algorithm.RSA256(jwkRsaProvider)
-        val verifier = JWT
-            .require(algo)
-            .withIssuer(oidcConfig.issuer)
-            .build()
+        val algo =
+            com.auth0.jwt.algorithms.Algorithm
+                .RSA256(jwkRsaProvider)
+        val verifier =
+            JWT
+                .require(algo)
+                .withIssuer(oidcConfig.issuer)
+                .build()
         try {
             val decoded = verifier.verify(t)
             return AuthVerificationResult(
@@ -79,28 +81,36 @@ class OIDCAuthPlugin(
     override fun register() {
         // Discover OIDC data
         val client = HttpClient.newHttpClient()
-        val request = HttpRequest
-            .newBuilder()
-            .GET()
-            .uri(URI.create(config.discoveryUrl))
-            .build()
-        val responseRaw = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString())
+        val request =
+            HttpRequest
+                .newBuilder()
+                .GET()
+                .uri(URI.create(config.discoveryUrl))
+                .build()
+        val responseRaw =
+            client.send(
+                request,
+                java.net.http.HttpResponse.BodyHandlers
+                    .ofString(),
+            )
         if (responseRaw.statusCode() != 200) {
             throw Exception("Failed to discover OIDC metadata")
         }
 
         val response = Json.decodeFromString<OIDCDiscoveryResponse>(responseRaw.body())
-        oidcConfig = OIDCDiscoveredConfig(
-            authorize = response.authorizationEndpoint,
-            jwks = response.jwksUri,
-            issuer = response.issuer,
-        )
+        oidcConfig =
+            OIDCDiscoveredConfig(
+                authorize = response.authorizationEndpoint,
+                jwks = response.jwksUri,
+                issuer = response.issuer,
+            )
         logger.info("Discovered OIDC values: [{}] [{}] [{}]", oidcConfig.authorize, oidcConfig.jwks, oidcConfig.issuer)
 
         // Discover JWKS
-        jwksProvider = JwkProviderBuilder(URL(oidcConfig.jwks))
-            .cached(true)
-            .build()
+        jwksProvider =
+            JwkProviderBuilder(URL(oidcConfig.jwks))
+                .cached(true)
+                .build()
         jwkRsaProvider = RSAKeyProvider(jwksProvider)
     }
 }

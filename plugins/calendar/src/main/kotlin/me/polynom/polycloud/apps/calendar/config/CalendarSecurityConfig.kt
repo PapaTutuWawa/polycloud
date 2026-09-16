@@ -13,11 +13,12 @@ import org.springframework.context.annotation.Configuration
 @PluginEnabled
 open class CalendarSecurityConfig {
     @Bean
-    open fun calendarPluginSecurityConfig(): PathAuthenticationConfig
-        = PathAuthenticationConfig(
-            paths = listOf(
-                AuthenticatedPath("/api/apps/calendar/calendar/*", authenticated = false),
-                AuthenticatedPath("/api/apps/calendar/calendar/*/events", authenticated = false),
-            )
+    open fun calendarPluginSecurityConfig(): PathAuthenticationConfig =
+        PathAuthenticationConfig(
+            paths =
+                listOf(
+                    AuthenticatedPath("/api/apps/calendar/calendar/*", authenticated = false),
+                    AuthenticatedPath("/api/apps/calendar/calendar/*/events", authenticated = false),
+                ),
         )
 }

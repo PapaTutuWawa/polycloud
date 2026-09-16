@@ -23,7 +23,7 @@ import org.springframework.transaction.support.TransactionTemplate
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.*
+import java.util.UUID
 
 /**
  * Service holding the API logic.
@@ -67,13 +67,14 @@ class CalendarService(
     fun createCalendar(creationRequest: CalendarCreationRequestDto): CalendarDto {
         // TODO: Better exception.
         val user = userContext.getUser() ?: throw IllegalArgumentException("User doesn't exist")
-        val entity = Calendar(
-            name = creationRequest.name,
-            description = creationRequest.description,
-            owner = user.username,
-            color = creationRequest.color,
-            public = creationRequest.public,
-        )
+        val entity =
+            Calendar(
+                name = creationRequest.name,
+                description = creationRequest.description,
+                owner = user.username,
+                color = creationRequest.color,
+                public = creationRequest.public,
+            )
         calendarRepository.save(entity)
         return calendarMapper.calendarToCalendarDto(entity)
     }
@@ -101,7 +102,7 @@ class CalendarService(
         }
 
         return ResponseEntity.ok(
-            calendarMapper.calendarToCalendarDto(calendar.first!!)
+            calendarMapper.calendarToCalendarDto(calendar.first!!),
         )
     }
 
@@ -112,21 +113,25 @@ class CalendarService(
      * @param eventCreationRequest  The request by the client.
      * @return A {@link EventDto}
      */
-    fun createEvent(calendarId: UUID, eventCreationRequest: EventCreationRequestDto): ResponseEntity<EventDto> {
+    fun createEvent(
+        calendarId: UUID,
+        eventCreationRequest: EventCreationRequestDto,
+    ): ResponseEntity<EventDto> {
         // Deny the request if there is anything wrong with the user's request.
         val calendar = getCalendarByIdWithAccessCheck(calendarId)
         if (calendar.first == null) {
             return ResponseEntity.status(calendar.second).build()
         }
 
-        val entity = Event(
-            calendar = calendarId,
-            title = eventCreationRequest.title,
-            description = eventCreationRequest.description,
-            timeframe = Range.closed(eventCreationRequest.start, eventCreationRequest.end),
-            allDay = eventCreationRequest.allDay,
-            place = eventCreationRequest.place,
-        )
+        val entity =
+            Event(
+                calendar = calendarId,
+                title = eventCreationRequest.title,
+                description = eventCreationRequest.description,
+                timeframe = Range.closed(eventCreationRequest.start, eventCreationRequest.end),
+                allDay = eventCreationRequest.allDay,
+                place = eventCreationRequest.place,
+            )
         eventRepository.save(entity)
         return ResponseEntity.ok(eventMapper.eventToEventDto(entity))
     }
@@ -153,7 +158,8 @@ class CalendarService(
             return ResponseEntity.ok(
                 eventRepository
                     .findAllByCalendar(calendarId)
-                    .map(eventMapper::eventToEventDto))
+                    .map(eventMapper::eventToEventDto),
+            )
         } else if (start != null && end != null && timezone != null) {
             // Query only events between start and end
             val calendar = getCalendarByIdWithAccessCheck(calendarId)
@@ -169,7 +175,8 @@ class CalendarService(
             return ResponseEntity.ok(
                 eventRepository
                     .findAllByCalenderIdAndTimeframeOverlapWithTimeframe(calendarId, range)
-                    .map(eventMapper::eventToEventDto))
+                    .map(eventMapper::eventToEventDto),
+            )
         }
 
         return ResponseEntity.status(400).build()
@@ -209,7 +216,10 @@ class CalendarService(
      * @param eventId       The ID of the event.
      * @return A {@link ResponseEntity} that only sets the status code.
      */
-    fun deleteEvent(calendarId: UUID, eventId: UUID): ResponseEntity<Void> {
+    fun deleteEvent(
+        calendarId: UUID,
+        eventId: UUID,
+    ): ResponseEntity<Void> {
         // TODO: No idea why we need a transaction here but not in the other functions
         return transactionTemplate.execute<ResponseEntity<Void>> ret@{
             val calendar = getCalendarByIdWithAccessCheck(calendarId)
@@ -220,7 +230,6 @@ class CalendarService(
             eventRepository.deleteByCalendarAndId(calendarId, eventId)
             ResponseEntity.ok().build()
         }
-
     }
 
     /**
