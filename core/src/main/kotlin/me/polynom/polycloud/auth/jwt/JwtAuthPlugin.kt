@@ -26,7 +26,7 @@ import java.time.ZonedDateTime
  * Authentication plugin for JWT bearer tokens.
  */
 @RestController
-@RequestMapping("/api/v1/auth/jwt")
+@RequestMapping("/api/v1/auth/")
 class JwtAuthPlugin(
     /** The JWT service. */
     private val jwtService: JwtService,
