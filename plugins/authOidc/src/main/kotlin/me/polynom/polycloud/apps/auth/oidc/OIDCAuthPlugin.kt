@@ -10,12 +10,17 @@ import me.polynom.polycloud.apps.auth.oidc.config.OIDCConfig
 import me.polynom.polycloud.apps.auth.oidc.config.OIDCDiscoveredConfig
 import me.polynom.polycloud.apps.auth.oidc.jwt.RSAKeyProvider
 import me.polynom.polycloud.apps.auth.oidc.rest.OIDCDiscoveryResponse
+import me.polynom.polycloud.plugin.auth.JwtService
 import me.polynom.polycloud.plugin.auth.PolycloudAuthPlugin
 import me.polynom.polycloud.plugin.auth.dto.AuthPluginData
 import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 import java.net.URL
 import java.net.http.HttpClient
@@ -24,11 +29,14 @@ import java.net.http.HttpRequest
 /**
  * Auth plugin that allows login via OIDC.
  */
-@Component
 @PluginEnabled
+@RestController
+@RequestMapping("/api/auth/oidc")
 class OIDCAuthPlugin(
     /** Plugin configuration. */
     val config: OIDCConfig,
+    /** The JWT service. */
+    val jwtService: JwtService,
 ) : PolycloudAuthPlugin {
     /** Logging. */
     val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -45,7 +53,7 @@ class OIDCAuthPlugin(
     override fun getData(): AuthPluginData =
         AuthPluginData(
             "oidc",
-            "Bearer",
+            null,
             config.displayName,
             config.displayIcon,
             mapOf(
@@ -56,27 +64,7 @@ class OIDCAuthPlugin(
             ),
         )
 
-    override fun verify(token: String): AuthVerificationResult? {
-        val t = token.substring(7)
-        val algo =
-            com.auth0.jwt.algorithms.Algorithm
-                .RSA256(jwkRsaProvider)
-        val verifier =
-            JWT
-                .require(algo)
-                .withIssuer(oidcConfig.issuer)
-                .build()
-        try {
-            val decoded = verifier.verify(t)
-            return AuthVerificationResult(
-                decoded.getClaim(config.usernameClaim).asString(),
-                decoded.getClaim(config.rolesClaim).asList(String::class.java),
-            )
-        } catch (e: JWTVerificationException) {
-            logger.warn("JWTVerificationException", e)
-            return null
-        }
-    }
+    override fun verify(token: String): AuthVerificationResult? = null
 
     override fun register() {
         // Discover OIDC data
@@ -112,5 +100,42 @@ class OIDCAuthPlugin(
                 .cached(true)
                 .build()
         jwkRsaProvider = RSAKeyProvider(jwksProvider)
+    }
+
+    @PostMapping("/authenticate")
+    fun authenticate(
+        @RequestHeader("Authorization") authHeader: String?,
+    ): ResponseEntity<String> {
+        if (authHeader == null) {
+            return ResponseEntity.status(401).build()
+        }
+
+        if (!authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).build()
+        }
+
+        val t = authHeader.substring(7)
+        val algo =
+            com.auth0.jwt.algorithms.Algorithm
+                .RSA256(jwkRsaProvider)
+        val verifier =
+            JWT
+                .require(algo)
+                .withIssuer(oidcConfig.issuer)
+                .build()
+        try {
+            val decoded = verifier.verify(t)
+            val username = decoded.getClaim(config.usernameClaim).asString()
+            val polycloudJwt =
+                jwtService.generateAuthToken(
+                    username,
+                    decoded.getClaim(config.rolesClaim).asList(String::class.java),
+                )
+            jwtService.saveRefreshToken(username, polycloudJwt.refreshToken)
+            return ResponseEntity.ok(polycloudJwt.authToken)
+        } catch (e: JWTVerificationException) {
+            logger.warn("JWTVerificationException", e)
+            return ResponseEntity.status(403).build()
+        }
     }
 }

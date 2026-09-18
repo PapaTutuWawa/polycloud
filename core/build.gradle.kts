@@ -32,7 +32,7 @@ dependencies {
     developmentOnly(project(":calendar"))
 
     // Allow generating OpenAPI specs
-    developmentOnly("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
 
     // Just use PostgreSQL for development
     developmentOnly("org.postgresql:postgresql:42.7.13")
@@ -43,6 +43,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-kotlinx-serialization-json")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    // JWT
+    implementation("com.auth0:java-jwt:4.6.0")
 
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
