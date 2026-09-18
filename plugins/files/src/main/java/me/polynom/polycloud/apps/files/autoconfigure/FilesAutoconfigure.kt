@@ -7,4 +7,4 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @AutoConfiguration
 @EnableConfigurationProperties(StorageConfig::class)
 @PluginEnabled
-class FilesAutoconfigure {}
+class FilesAutoconfigure

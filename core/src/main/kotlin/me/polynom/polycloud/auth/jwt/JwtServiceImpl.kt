@@ -56,33 +56,31 @@ class JwtServiceImpl(
         username: String,
         roles: List<String>,
         type: JwtType,
-    ): String {
-        return JWT
-                .create()
-                .withIssuer(JwtConstants.ISSUER)
-                .withSubject(username)
-                .withIssuedAt(Instant.now(Clock.systemDefaultZone()))
-                .withClaim(JwtConstants.TYPE, type.value)
-                .withArrayClaim(
-                    JwtConstants.ROLES,
-                    roles.toTypedArray(),
-                ).sign(algorithm)
-    }
+    ): String =
+        JWT
+            .create()
+            .withIssuer(JwtConstants.ISSUER)
+            .withSubject(username)
+            .withIssuedAt(Instant.now(Clock.systemDefaultZone()))
+            .withClaim(JwtConstants.TYPE, type.value)
+            .withArrayClaim(
+                JwtConstants.ROLES,
+                roles.toTypedArray(),
+            ).sign(algorithm)
 
     override fun generateAuthToken(
         username: String,
         roles: List<String>,
-    ): AuthToken {
-        return AuthToken(
+    ): AuthToken =
+        AuthToken(
             generateJwtToken(username, roles, JwtType.AUTH),
             jwtConfig.tokenLifetime,
             generateJwtToken(username, roles, JwtType.REFRESH),
             jwtConfig.refreshLifetime,
         )
-    }
 
-    private fun authResultFromJwt(decoded: DecodedJWT): AuthVerificationResult {
-        return AuthVerificationResult(
+    private fun authResultFromJwt(decoded: DecodedJWT): AuthVerificationResult =
+        AuthVerificationResult(
             username = decoded.subject,
             roles =
                 decoded
@@ -90,7 +88,6 @@ class JwtServiceImpl(
                         JwtConstants.ROLES,
                     ).asList(String::class.java),
         )
-    }
 
     override fun verifyAuthToken(token: String): AuthVerificationResult? {
         try {
@@ -116,7 +113,10 @@ class JwtServiceImpl(
         return tokenDigest.digest().toHexString()
     }
 
-    override fun saveRefreshToken(username: String, token: String) {
+    override fun saveRefreshToken(
+        username: String,
+        token: String,
+    ) {
         refreshTokenRepository.save(
             RefreshToken(
                 tokenHash = sha256Hash(token),
@@ -131,7 +131,11 @@ class JwtServiceImpl(
     }
 
     @Transactional
-    override fun replaceRefreshToken(username: String, old: String, new: String) {
+    override fun replaceRefreshToken(
+        username: String,
+        old: String,
+        new: String,
+    ) {
         refreshTokenRepository.deleteById(sha256Hash(old))
         saveRefreshToken(username, new)
     }

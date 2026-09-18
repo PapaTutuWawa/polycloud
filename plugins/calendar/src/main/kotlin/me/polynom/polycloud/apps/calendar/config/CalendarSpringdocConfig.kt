@@ -15,11 +15,10 @@ open class CalendarSpringdocConfig {
      * SpringDoc config for the calendar plugin.
      */
     @Bean("calendarOpenApi")
-    open fun calendarOpenApi(): GroupedOpenApi {
-        return GroupedOpenApi
+    open fun calendarOpenApi(): GroupedOpenApi =
+        GroupedOpenApi
             .builder()
             .group("calendar")
             .packagesToScan("me.polynom.polycloud.apps.calendar")
             .build()
-    }
 }

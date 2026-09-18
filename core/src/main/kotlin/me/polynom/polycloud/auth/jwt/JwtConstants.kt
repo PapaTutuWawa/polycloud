@@ -11,5 +11,5 @@ object JwtConstants {
     val ROLES = "roles"
 
     /** The type claim in the JWT. */
-    val TYPE = "type";
+    val TYPE = "type"
 }

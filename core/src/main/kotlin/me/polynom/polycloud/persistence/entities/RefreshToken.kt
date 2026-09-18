@@ -15,7 +15,6 @@ class RefreshToken(
     @Id
     @Column(name = "token_hash", nullable = false)
     var tokenHash: String? = null,
-
     /** The username this token belongs to. */
     @Column(name = "username", nullable = false)
     var username: String? = null,

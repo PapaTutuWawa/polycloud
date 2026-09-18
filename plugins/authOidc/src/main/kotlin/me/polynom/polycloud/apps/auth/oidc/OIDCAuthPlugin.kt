@@ -138,7 +138,7 @@ class OIDCAuthPlugin(
             logger.debug(
                 "Generating token with [{}] and [{}]",
                 username,
-                decoded.getClaim(config.rolesClaim)?.asList(String::class.java)
+                decoded.getClaim(config.rolesClaim)?.asList(String::class.java),
             )
             val polycloudJwt =
                 jwtService.generateAuthToken(
@@ -150,7 +150,7 @@ class OIDCAuthPlugin(
                 AuthResult(
                     auth = AuthResult.Token(polycloudJwt.authToken, expiry = polycloudJwt.authTokenExpiryIn),
                     refresh = AuthResult.Token(polycloudJwt.refreshToken, expiry = polycloudJwt.refreshTokenExpiryIn),
-                )
+                ),
             )
         } catch (e: JWTVerificationException) {
             logger.warn("JWTVerificationException", e)
@@ -162,15 +162,19 @@ class OIDCAuthPlugin(
      * Proxy endpoint to do a token exchange. In case the IDP does not set CORS headers.
      */
     @PostMapping("/proxy/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
-    fun token(@RequestBody payload: MultiValueMap<String, String>): ResponseEntity<String> {
+    fun token(
+        @RequestBody payload: MultiValueMap<String, String>,
+    ): ResponseEntity<String> {
         logger.debug("Got request [{}]", payload)
         val client = HttpClient.newHttpClient()
         val mutablePayload = payload.toMutableMap()
         mutablePayload["client_id"] = listOf(config.clientId)
         mutablePayload["client_secret"] = listOf(config.clientSecret)
-        val payload = mutablePayload.map { (key, value) ->
-            "$key=${URLEncoder.encode(value[0], StandardCharsets.UTF_8.toString())}"
-        }.joinToString("&")
+        val payload =
+            mutablePayload
+                .map { (key, value) ->
+                    "$key=${URLEncoder.encode(value[0], StandardCharsets.UTF_8.toString())}"
+                }.joinToString("&")
         logger.debug("Sending payload [{}]", payload)
 
         val request =
@@ -195,7 +199,6 @@ class OIDCAuthPlugin(
                 response.headers().map().forEach { (name, value) ->
                     headers.put(name, value)
                 }
-            }
-            .body(response.body())
+            }.body(response.body())
     }
 }

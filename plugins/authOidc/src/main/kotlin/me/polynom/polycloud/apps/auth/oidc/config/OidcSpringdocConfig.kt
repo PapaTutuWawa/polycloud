@@ -15,11 +15,10 @@ open class OidcSpringdocConfig {
      * SpringDoc config for OIDC.
      */
     @Bean("oidcOpenApi")
-    open fun oidcOpenApi(): GroupedOpenApi {
-        return GroupedOpenApi
+    open fun oidcOpenApi(): GroupedOpenApi =
+        GroupedOpenApi
             .builder()
             .group("oidc")
             .packagesToScan("me.polynom.polycloud.apps.auth.oidc")
             .build()
-    }
 }
