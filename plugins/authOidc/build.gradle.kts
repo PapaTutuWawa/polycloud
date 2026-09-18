@@ -24,6 +24,9 @@ dependencies {
     // JSON
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 
+    // OpenAPI
+    compileOnly("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
+
     // JWT verification
     implementation("com.auth0:java-jwt:4.6.0")
     implementation("com.auth0:jwks-rsa:0.24.1")
