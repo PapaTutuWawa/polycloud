@@ -8,7 +8,9 @@ import org.springframework.stereotype.Component
 
 @PluginEnabled
 @Component
-class FilesPlugin(val storageConfig: StorageConfig) : PolycloudPlugin {
+class FilesPlugin(
+    val storageConfig: StorageConfig,
+) : PolycloudPlugin {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     override fun register() {

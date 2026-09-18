@@ -6,5 +6,4 @@ import org.springframework.data.repository.CrudRepository
 /**
  * Repository for the refresh token repository.
  */
-interface RefreshTokenRepository : CrudRepository<RefreshToken, String> {
-}
+interface RefreshTokenRepository : CrudRepository<RefreshToken, String>

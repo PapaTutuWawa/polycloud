@@ -21,11 +21,10 @@ class SpringdocConfig {
      * SpringDoc config for the core API
      */
     @Bean("coreOpenApi")
-    fun coreOpenApi(): GroupedOpenApi {
-        return GroupedOpenApi
+    fun coreOpenApi(): GroupedOpenApi =
+        GroupedOpenApi
             .builder()
             .group("core")
             .pathsToMatch("/api/v1/**")
             .build()
-    }
 }

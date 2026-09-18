@@ -50,8 +50,7 @@ class JwtAuthPlugin(
             data = null,
         )
 
-    override fun verify(token: String): AuthVerificationResult?
-        = jwtService.verifyAuthToken(token.substring(7))
+    override fun verify(token: String): AuthVerificationResult? = jwtService.verifyAuthToken(token.substring(7))
 
     override fun register() {}
 
@@ -85,27 +84,30 @@ class JwtAuthPlugin(
         }
 
         // Generate a new token and put it into the database.
-        val authToken = jwtService.generateAuthToken(
-            refreshTokenResult.username,
-            refreshTokenResult.roles,
-        )
+        val authToken =
+            jwtService.generateAuthToken(
+                refreshTokenResult.username,
+                refreshTokenResult.roles,
+            )
         jwtService.replaceRefreshToken(
             refreshTokenResult.username,
             refreshTokenValue,
-            authToken.refreshToken
+            authToken.refreshToken,
         )
 
         return ResponseEntity.ok(
             TokenRefreshDto(
-                auth = TokenRefreshDto.Token(
-                    token = authToken.authToken,
-                    expiresIn = jwtConfig.tokenLifetime,
-                ),
-                refresh = TokenRefreshDto.Token(
-                    token = authToken.refreshToken,
-                    expiresIn = jwtConfig.refreshLifetime,
-                ),
-            )
+                auth =
+                    TokenRefreshDto.Token(
+                        token = authToken.authToken,
+                        expiresIn = jwtConfig.tokenLifetime,
+                    ),
+                refresh =
+                    TokenRefreshDto.Token(
+                        token = authToken.refreshToken,
+                        expiresIn = jwtConfig.refreshLifetime,
+                    ),
+            ),
         )
     }
 }

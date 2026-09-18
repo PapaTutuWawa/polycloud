@@ -11,7 +11,8 @@ enum class JwtType(
     AUTH("auth"),
 
     /** The JWT can be used for refresh. */
-    REFRESH("refresh");
+    REFRESH("refresh"),
+    ;
 
     companion object {
         /**
@@ -20,12 +21,11 @@ enum class JwtType(
          * @param value The value to convert.
          * @return The {@link JwtType}.
          */
-        fun fromString(value: String): JwtType {
-            return when (value) {
+        fun fromString(value: String): JwtType =
+            when (value) {
                 "auth" -> AUTH
                 "refresh" -> REFRESH
                 else -> throw IllegalArgumentException("$value is not a valid jwtType")
             }
-        }
     }
 }

@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding
 
 @ConfigurationProperties("me.polynom.polycloud.apps.files.storage")
 @PluginEnabled
-class StorageConfig @ConstructorBinding constructor(
-    val local: List<LocalStorageConfig>,
-)
+class StorageConfig
+    @ConstructorBinding
+    constructor(
+        val local: List<LocalStorageConfig>,
+    )

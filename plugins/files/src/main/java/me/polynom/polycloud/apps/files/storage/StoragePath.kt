@@ -1,13 +1,16 @@
 package me.polynom.polycloud.apps.files.storage
 
-class StoragePath(val components: List<String>, val file: Boolean) {
-
+class StoragePath(
+    val components: List<String>,
+    val file: Boolean,
+) {
     constructor(path: String) : this(parsePath(path), !path.endsWith("/"))
 
-    fun split(index: Int): Pair<StoragePath, StoragePath> = Pair(
-        StoragePath(this.components.take(index), false),
-        StoragePath(this.components.drop(index), this.file)
-    )
+    fun split(index: Int): Pair<StoragePath, StoragePath> =
+        Pair(
+            StoragePath(this.components.take(index), false),
+            StoragePath(this.components.drop(index), this.file),
+        )
 
     fun merge(other: StoragePath): StoragePath {
         if (this.file) {
@@ -17,18 +20,20 @@ class StoragePath(val components: List<String>, val file: Boolean) {
         return StoragePath(components + other.components, other.file)
     }
 
-    fun folderDepth(): Int = if (file) {
-        components.size - 1
-    } else {
-        components.size
-    }
+    fun folderDepth(): Int =
+        if (file) {
+            components.size - 1
+        } else {
+            components.size
+        }
 
     override fun toString(): String {
-        val postfix = if (file || components.size == 0) {
-            ""
-        } else {
-            "/"
-        }
+        val postfix =
+            if (file || components.size == 0) {
+                ""
+            } else {
+                "/"
+            }
 
         return components.joinToString("/", prefix = "/", postfix = postfix)
     }
@@ -39,7 +44,8 @@ class StoragePath(val components: List<String>, val file: Boolean) {
                 throw IllegalArgumentException("Storage paths must start with a `/`")
             }
 
-            return path.split("/")
+            return path
+                .split("/")
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
         }

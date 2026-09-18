@@ -18,7 +18,7 @@ class CorsFilter : Filter {
     override fun doFilter(
         request: ServletRequest,
         response: ServletResponse,
-        filterChain: FilterChain
+        filterChain: FilterChain,
     ) {
         if (request !is HttpServletRequest || response !is HttpServletResponse) {
             filterChain.doFilter(request, response)
@@ -31,8 +31,8 @@ class CorsFilter : Filter {
 
         // If we have a CORS preflight request, then just terminate here and do not run anything else.
         if (request.method == "OPTIONS") {
-            response.status = 200;
-            return;
+            response.status = 200
+            return
         }
 
         filterChain.doFilter(request, response)
