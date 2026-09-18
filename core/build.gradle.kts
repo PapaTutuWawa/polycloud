@@ -32,7 +32,7 @@ dependencies {
     developmentOnly(project(":calendar"))
 
     // Allow generating OpenAPI specs
-    developmentOnly("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
 
     // Just use PostgreSQL for development
     developmentOnly("org.postgresql:postgresql:42.7.13")
