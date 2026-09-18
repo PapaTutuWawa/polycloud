@@ -15,17 +15,23 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.relativeTo
 
-class LocalStorage (val root: Path, val shared: Boolean) : Storage {
-
-    private fun resolvePath(user: String, path: StoragePath): Path = if (shared) {
-        root.resolve(path.toString().substring(1))
-    } else {
-        root.resolve(user, path.toString().substring(1))
-    }
+class LocalStorage(
+    val root: Path,
+    val shared: Boolean,
+) : Storage {
+    private fun resolvePath(
+        user: String,
+        path: StoragePath,
+    ): Path =
+        if (shared) {
+            root.resolve(path.toString().substring(1))
+        } else {
+            root.resolve(user, path.toString().substring(1))
+        }
 
     override fun listFiles(
         user: String,
-        path: StoragePath
+        path: StoragePath,
     ): List<StoragePath> {
         if (path.file) {
             throw IllegalArgumentException("Path references file")
@@ -45,7 +51,7 @@ class LocalStorage (val root: Path, val shared: Boolean) : Storage {
 
     override fun getFile(
         user: String,
-        path: StoragePath
+        path: StoragePath,
     ): InputStream {
         if (!path.file) {
             throw IllegalArgumentException("Path references folder")
@@ -64,7 +70,7 @@ class LocalStorage (val root: Path, val shared: Boolean) : Storage {
     override fun putFile(
         user: String,
         path: StoragePath,
-        data: InputStream
+        data: InputStream,
     ) {
         if (!path.file) {
             throw IllegalArgumentException("Path references folder")
@@ -73,14 +79,19 @@ class LocalStorage (val root: Path, val shared: Boolean) : Storage {
         val path = resolvePath(user, path)
 
         Files.createDirectories(path.parent)
-        BufferedOutputStream(Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)).use { fileStream ->
+        val fos = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+        val bos = BufferedOutputStream(fos)
+        bos.use { fileStream ->
             data.use {
                 it.transferTo(fileStream)
             }
         }
     }
 
-    override fun delete(user: String, path: StoragePath) {
+    override fun delete(
+        user: String,
+        path: StoragePath,
+    ) {
         val file = path.file
         val path = resolvePath(user, path)
 

@@ -8,9 +8,13 @@ import java.io.InputStream
 
 @Component
 @PluginEnabled
-class FilesService(val storageService: StorageService) {
-
-    fun listFiles(user: String, path: StoragePath): List<StoragePath> {
+class FilesService(
+    val storageService: StorageService,
+) {
+    fun listFiles(
+        user: String,
+        path: StoragePath,
+    ): List<StoragePath> {
         val (storage, relPath) = storageService.resolveMount(path)
         if (storage != null) {
             return storage.listFiles(user, relPath).map {
@@ -23,21 +27,31 @@ class FilesService(val storageService: StorageService) {
         }
     }
 
-    fun getFile(user: String, path: StoragePath): InputStream {
+    fun getFile(
+        user: String,
+        path: StoragePath,
+    ): InputStream {
         val (storage, relPath) = storageService.resolveMount(path)
         // FIXME: user facing error
         storage ?: throw IllegalArgumentException("MOOP")
         return storage.getFile(user, relPath)
     }
 
-    fun putFile(user: String, path: StoragePath, data: InputStream) {
+    fun putFile(
+        user: String,
+        path: StoragePath,
+        data: InputStream,
+    ) {
         val (storage, relPath) = storageService.resolveMount(path)
         // FIXME: user facing error
         storage ?: throw IllegalArgumentException("MOOP")
         storage.putFile(user, relPath, data)
     }
 
-    fun delete(user: String, path: StoragePath) {
+    fun delete(
+        user: String,
+        path: StoragePath,
+    ) {
         val (storage, relPath) = storageService.resolveMount(path)
         // FIXME: user facing error
         storage ?: throw IllegalArgumentException("MOOP")

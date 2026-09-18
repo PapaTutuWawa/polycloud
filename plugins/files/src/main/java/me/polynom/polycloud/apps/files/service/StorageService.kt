@@ -10,8 +10,9 @@ import kotlin.math.min
 
 @Component
 @PluginEnabled
-class StorageService (storageConfig: StorageConfig) {
-
+class StorageService(
+    storageConfig: StorageConfig,
+) {
     val mapper: Map<String, Storage> = initMapping(storageConfig)
     val maxDepth: Int = mapper.keys.maxOfOrNull { it.split("/").size - 2 } ?: 0
 

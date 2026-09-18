@@ -22,11 +22,15 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 @RestController
 @PluginEnabled
 @RequestMapping("/api/apps/files")
-class ApiController(val filesService: FilesService) {
-
+class ApiController(
+    val filesService: FilesService,
+) {
     @GetMapping("/users/{user}/{*path}")
-    fun listOrGetFile(@PathVariable("user") user: String, @PathVariable("path") path: StoragePath): Any {
-        return if (path.file) {
+    fun listOrGetFile(
+        @PathVariable("user") user: String,
+        @PathVariable("path") path: StoragePath,
+    ): Any =
+        if (path.file) {
             // TODO: content disposition
             // TODO: content type
 
@@ -36,10 +40,13 @@ class ApiController(val filesService: FilesService) {
         } else {
             filesService.listFiles(user, path)
         }
-    }
 
     @PutMapping("/users/{user}/{*path}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun upload(@PathVariable("user") user: String, @PathVariable("path") path: StoragePath, request: HttpServletRequest) {
+    fun upload(
+        @PathVariable("user") user: String,
+        @PathVariable("path") path: StoragePath,
+        request: HttpServletRequest,
+    ) {
         val items = FileUpload().getItemIterator(ServletRequestContext(request))
         while (items.hasNext()) {
             val item = items.next()
@@ -53,7 +60,10 @@ class ApiController(val filesService: FilesService) {
     }
 
     @DeleteMapping("/users/{user}/{*path}")
-    fun delete(@PathVariable("user") user: String, @PathVariable("path") path: StoragePath) {
+    fun delete(
+        @PathVariable("user") user: String,
+        @PathVariable("path") path: StoragePath,
+    ) {
         filesService.delete(user, path)
     }
 }
