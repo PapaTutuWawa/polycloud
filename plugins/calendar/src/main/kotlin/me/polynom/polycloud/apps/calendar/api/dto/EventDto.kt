@@ -1,6 +1,7 @@
 package me.polynom.polycloud.apps.calendar.api.dto
 
 import java.time.ZonedDateTime
+import java.util.UUID
 
 /**
  * DTO for a single event.
@@ -20,4 +21,6 @@ data class EventDto(
     val allDay: Boolean,
     /** Place where the event takes place. */
     val place: String?,
+    /** The owning calendar's UUID. */
+    val calendar: UUID,
 )
