@@ -3,6 +3,7 @@ package me.polynom.polycloud.apps.calendar.api
 import io.swagger.v3.oas.annotations.Operation
 import me.polynom.polycloud.apps.calendar.api.dto.CalendarCreationRequestDto
 import me.polynom.polycloud.apps.calendar.api.dto.CalendarDto
+import me.polynom.polycloud.apps.calendar.api.dto.CalendarEventListingRequestDto
 import me.polynom.polycloud.apps.calendar.api.dto.EventCreationRequestDto
 import me.polynom.polycloud.apps.calendar.api.dto.EventDto
 import me.polynom.polycloud.apps.calendar.autoconfigure.PluginEnabled
@@ -79,4 +80,13 @@ class ApiController(
         @RequestParam("end") end: Long?,
         @RequestParam("tz") timezone: String?,
     ): ResponseEntity<List<EventDto>> = service.getEvents(calendarId, start, end, timezone)
+
+    @Operation(summary = "Lists events in multiple calendars.")
+    @PostMapping("/calendar/events")
+    fun getEventsForMultipleCalendars(
+        @RequestBody request: CalendarEventListingRequestDto,
+        @RequestParam("start") start: Long?,
+        @RequestParam("end") end: Long?,
+        @RequestParam("tz") timezone: String?,
+    ): ResponseEntity<List<EventDto>> = service.getEventsForMultipleCalendars(request, start, end, timezone)
 }
