@@ -18,7 +18,7 @@ data class OIDCConfig
         /** The display icon of the login method. */
         val displayIcon: String?,
         /** Username claim. */
-        val usernameClaim: String = "prefered_username",
+        val usernameClaim: String = "preferred_username",
         /** Roles claim. */
         val rolesClaim: String = "groups",
         /** OIDC scopes to request. */

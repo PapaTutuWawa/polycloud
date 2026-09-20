@@ -1,6 +1,8 @@
 package me.polynom.polycloud.auth.jwt
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import me.polynom.polycloud.auth.jwt.dto.TokenRefreshDto
+import me.polynom.polycloud.auth.jwt.dto.WhoAmIDto
 import me.polynom.polycloud.config.JwtConfig
 import me.polynom.polycloud.persistence.entities.RefreshToken
 import me.polynom.polycloud.persistence.repository.RefreshTokenRepository
@@ -12,6 +14,7 @@ import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
@@ -32,8 +35,8 @@ class JwtAuthPlugin(
     private val jwtService: JwtService,
     /** The JWT config. */
     private val jwtConfig: JwtConfig,
-    /** Repository for refresh tokens. */
-    private val refreshTokenRepository: RefreshTokenRepository,
+    /** The user context. */
+    private val userContext: UserContext,
 ) : PolycloudAuthPlugin {
     /** Logging. */
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
@@ -52,7 +55,16 @@ class JwtAuthPlugin(
 
     override fun register() {}
 
+    @GetMapping("/whoami")
+    @SecurityRequirement(name = "jwt")
+    fun whoami(): WhoAmIDto =
+        WhoAmIDto(
+            userContext.getUser()!!.username,
+            userContext.getUser()!!.roles,
+        )
+
     @PostMapping("/refresh")
+    @SecurityRequirement(name = "jwt")
     fun refresh(
         @RequestHeader("Authorization") authHeader: String,
     ): ResponseEntity<TokenRefreshDto> {

@@ -5,6 +5,7 @@ import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwt.JWT
 import com.auth0.jwt.exceptions.JWTVerificationException
 import kotlinx.serialization.json.Json
+import me.polynom.polycloud.apps.auth.oidc.api.dto.AuthResult
 import me.polynom.polycloud.apps.auth.oidc.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.auth.oidc.config.OIDCConfig
 import me.polynom.polycloud.apps.auth.oidc.config.OIDCDiscoveredConfig
@@ -16,15 +17,22 @@ import me.polynom.polycloud.plugin.auth.dto.AuthPluginData
 import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.util.UriBuilder
 import java.net.URI
 import java.net.URL
+import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
+import java.nio.charset.StandardCharsets
 
 /**
  * Auth plugin that allows login via OIDC.
@@ -89,6 +97,7 @@ class OIDCAuthPlugin(
         oidcConfig =
             OIDCDiscoveredConfig(
                 authorize = response.authorizationEndpoint,
+                token = response.tokenEndpoint,
                 jwks = response.jwksUri,
                 issuer = response.issuer,
             )
@@ -105,7 +114,7 @@ class OIDCAuthPlugin(
     @PostMapping("/authenticate")
     fun authenticate(
         @RequestHeader("Authorization") authHeader: String?,
-    ): ResponseEntity<String> {
+    ): ResponseEntity<AuthResult> {
         if (authHeader == null) {
             return ResponseEntity.status(401).build()
         }
@@ -126,16 +135,67 @@ class OIDCAuthPlugin(
         try {
             val decoded = verifier.verify(t)
             val username = decoded.getClaim(config.usernameClaim).asString()
+            logger.debug(
+                "Generating token with [{}] and [{}]",
+                username,
+                decoded.getClaim(config.rolesClaim)?.asList(String::class.java)
+            )
             val polycloudJwt =
                 jwtService.generateAuthToken(
                     username,
                     decoded.getClaim(config.rolesClaim).asList(String::class.java),
                 )
             jwtService.saveRefreshToken(username, polycloudJwt.refreshToken)
-            return ResponseEntity.ok(polycloudJwt.authToken)
+            return ResponseEntity.ok(
+                AuthResult(
+                    auth = AuthResult.Token(polycloudJwt.authToken, expiry = polycloudJwt.authTokenExpiryIn),
+                    refresh = AuthResult.Token(polycloudJwt.refreshToken, expiry = polycloudJwt.refreshTokenExpiryIn),
+                )
+            )
         } catch (e: JWTVerificationException) {
             logger.warn("JWTVerificationException", e)
             return ResponseEntity.status(403).build()
         }
+    }
+
+    /**
+     * Proxy endpoint to do a token exchange. In case the IDP does not set CORS headers.
+     */
+    @PostMapping("/proxy/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
+    fun token(@RequestBody payload: MultiValueMap<String, String>): ResponseEntity<String> {
+        logger.debug("Got request [{}]", payload)
+        val client = HttpClient.newHttpClient()
+        val mutablePayload = payload.toMutableMap()
+        mutablePayload["client_id"] = listOf(config.clientId)
+        mutablePayload["client_secret"] = listOf(config.clientSecret)
+        val payload = mutablePayload.map { (key, value) ->
+            "$key=${URLEncoder.encode(value[0], StandardCharsets.UTF_8.toString())}"
+        }.joinToString("&")
+        logger.debug("Sending payload [{}]", payload)
+
+        val request =
+            HttpRequest
+                .newBuilder()
+                .POST(HttpRequest.BodyPublishers.ofString(payload))
+                .uri(URI.create(oidcConfig.token))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                .build()
+        val response =
+            client.send(
+                request,
+                java.net.http.HttpResponse.BodyHandlers
+                    .ofString(),
+            )
+        logger.debug("Got response: [{}] [{}]", response.statusCode(), response.headers())
+        logger.debug("Body: [{}]", response.body())
+
+        return ResponseEntity
+            .status(response.statusCode())
+            .headers { headers ->
+                response.headers().map().forEach { (name, value) ->
+                    headers.put(name, value)
+                }
+            }
+            .body(response.body())
     }
 }

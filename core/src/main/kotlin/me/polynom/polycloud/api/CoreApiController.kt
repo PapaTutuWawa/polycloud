@@ -1,5 +1,6 @@
 package me.polynom.polycloud.api
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import me.polynom.polycloud.api.dto.AuthMechanismDto
 import me.polynom.polycloud.api.dto.AuthMechanismsDto
 import me.polynom.polycloud.api.dto.EnabledAppDto
@@ -51,6 +52,7 @@ class CoreApiController(
         )
 
     @GetMapping("/apps")
+    @SecurityRequirement(name = "jwt")
     fun apps() =
         EnabledAppsDto(
             apps =

@@ -15,6 +15,9 @@ data class OIDCDiscoveryResponse(
     /** The endpoint to send auth requests to. */
     @SerialName("authorization_endpoint")
     val authorizationEndpoint: String,
+    /** The endpoint to perform code->token exchanges. */
+    @SerialName("token_endpoint")
+    val tokenEndpoint: String,
     /** The endpoint holding the JWKS keypair. */
     @SerialName("jwks_uri")
     val jwksUri: String,
