@@ -6,6 +6,8 @@ package me.polynom.polycloud.apps.auth.oidc.config
 data class OIDCDiscoveredConfig(
     /** URL for authentication. */
     val authorize: String,
+    /** URL for token exchanges. */
+    val token: String,
     /** URL for JWKS. */
     val jwks: String,
     /** The issuer. */
