@@ -184,7 +184,7 @@ class CalendarService(
     }
 
     /**
-     * Gets all events associated with a list of calendars..
+     * Gets all events associated with a list of calendars.
      *
      * @param request   The request by the client.
      * @return A {@link ResponseEntity} that may or may not contain the event list.
@@ -196,6 +196,7 @@ class CalendarService(
         timezone: String?,
     ): ResponseEntity<List<EventDto>> {
         if (start == null && end == null && timezone == null) {
+            // TODO: Optimize this.
             val events = request.calendars.map loop@{
                 val uuid = UUID.fromString(it)
                 val calendar = getCalendarByIdWithAccessCheck(uuid)
