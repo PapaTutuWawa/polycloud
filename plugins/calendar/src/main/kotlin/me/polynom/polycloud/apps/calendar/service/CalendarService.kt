@@ -3,6 +3,7 @@ package me.polynom.polycloud.apps.calendar.service
 import io.hypersistence.utils.hibernate.type.range.Range
 import me.polynom.polycloud.apps.calendar.api.dto.CalendarCreationRequestDto
 import me.polynom.polycloud.apps.calendar.api.dto.CalendarDto
+import me.polynom.polycloud.apps.calendar.api.dto.CalendarEventListingRequestDto
 import me.polynom.polycloud.apps.calendar.api.dto.EventCreationRequestDto
 import me.polynom.polycloud.apps.calendar.api.dto.EventDto
 import me.polynom.polycloud.apps.calendar.autoconfigure.PluginEnabled
@@ -177,6 +178,42 @@ class CalendarService(
                     .findAllByCalenderIdAndTimeframeOverlapWithTimeframe(calendarId, range)
                     .map(eventMapper::eventToEventDto),
             )
+        }
+
+        return ResponseEntity.status(400).build()
+    }
+
+    /**
+     * Gets all events associated with a list of calendars.
+     *
+     * @param request   The request by the client.
+     * @return A {@link ResponseEntity} that may or may not contain the event list.
+     */
+    fun getEventsForMultipleCalendars(
+        request: CalendarEventListingRequestDto,
+        start: Long?,
+        end: Long?,
+        timezone: String?,
+    ): ResponseEntity<List<EventDto>> {
+        if (start == null && end == null && timezone == null) {
+            // TODO: Optimize this.
+            val events = request.calendars.map loop@{
+                val uuid = UUID.fromString(it)
+                val calendar = getCalendarByIdWithAccessCheck(uuid)
+                if (calendar.first == null) {
+                    return@loop emptyList<Event>()
+                }
+
+                eventRepository
+                    .findAllByCalendar(uuid)
+                    .map(eventMapper::eventToEventDto)
+            }.filter {
+                it.isNotEmpty()
+            }.flatten()
+
+            return ResponseEntity.ok(events as List<EventDto>)
+        } else if (start != null && end != null && timezone != null) {
+            throw Exception();
         }
 
         return ResponseEntity.status(400).build()

@@ -26,8 +26,8 @@ class CorsFilter : Filter {
         }
 
         response.setHeader("Access-Control-Allow-Origin", "*")
-        response.setHeader("Access-Control-Request-Method", "POST, GET, DELETE, PUT, PATCH, OPTIONS, HEAD")
-        response.setHeader("Access-Control-Allow-Headers", "Authorization")
+        response.setHeader("Access-Control-Request-Method", "*")
+        response.setHeader("Access-Control-Allow-Headers", "*")
 
         // If we have a CORS preflight request, then just terminate here and do not run anything else.
         if (request.method == "OPTIONS") {
