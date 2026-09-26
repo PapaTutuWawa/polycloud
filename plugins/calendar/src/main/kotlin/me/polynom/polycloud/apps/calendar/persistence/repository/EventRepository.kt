@@ -32,7 +32,7 @@ interface EventRepository : CrudRepository<Event, UUID> {
     /**
      * Finds all events that somehow overlap with the specified timeframe.
      *
-     * @param calendarId    The UUID of the calendar.
+     * @param calendarIds   The UUIDs of the calendars.
      * @param timeframe     The timeframe that has to overlap the event's duration.
      */
     @NativeQuery(
@@ -42,12 +42,12 @@ interface EventRepository : CrudRepository<Event, UUID> {
         FROM
             event
         WHERE
-            calendar = ?1 AND
+            calendar IN ?1 AND
             timeframe && ?2
         """,
     )
-    fun findAllByCalenderIdAndTimeframeOverlapWithTimeframe(
-        calendarId: UUID,
+    fun findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(
+        calendarIds: List<UUID>,
         timeframe: Range<ZonedDateTime>,
     ): List<Event>
 }

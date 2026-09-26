@@ -85,8 +85,8 @@ class ApiController(
     @PostMapping("/calendar/events")
     fun getEventsForMultipleCalendars(
         @RequestBody request: CalendarEventListingRequestDto,
-        @RequestParam("start") start: Long?,
-        @RequestParam("end") end: Long?,
-        @RequestParam("tz") timezone: String?,
+        @RequestParam("start") start: Long,
+        @RequestParam("end") end: Long,
+        @RequestParam("tz") timezone: String,
     ): ResponseEntity<List<EventDto>> = service.getEventsForMultipleCalendars(request, start, end, timezone)
 }
