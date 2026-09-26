@@ -134,6 +134,7 @@ class CalendarService(
                 place = eventCreationRequest.place,
             )
         eventRepository.save(entity)
+        entity.color = calendar.first!!.color
         return ResponseEntity.ok(eventMapper.eventToEventDto(entity))
     }
 
