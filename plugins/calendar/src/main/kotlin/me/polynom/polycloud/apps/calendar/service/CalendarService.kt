@@ -175,7 +175,7 @@ class CalendarService(
 
             return ResponseEntity.ok(
                 eventRepository
-                    .findAllByCalenderIdAndTimeframeOverlapWithTimeframe(calendarId, range)
+                    .findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(listOf(calendarId), range)
                     .map(eventMapper::eventToEventDto),
             )
         }
@@ -187,36 +187,27 @@ class CalendarService(
      * Gets all events associated with a list of calendars.
      *
      * @param request   The request by the client.
+     * @param start     The start date of events to query.
+     * @param end       The end date of events to query.
+     * @param timezone  The timezone to use for the query.
      * @return A {@link ResponseEntity} that may or may not contain the event list.
      */
     fun getEventsForMultipleCalendars(
         request: CalendarEventListingRequestDto,
-        start: Long?,
-        end: Long?,
-        timezone: String?,
+        start: Long,
+        end: Long,
+        timezone: String,
     ): ResponseEntity<List<EventDto>> {
-        if (start == null && end == null && timezone == null) {
-            // TODO: Optimize this.
-            val events = request.calendars.map loop@{
-                val uuid = UUID.fromString(it)
-                val calendar = getCalendarByIdWithAccessCheck(uuid)
-                if (calendar.first == null) {
-                    return@loop emptyList<Event>()
-                }
+        val zone = ZoneId.of(timezone)
+        val events = eventRepository.findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(
+            request.calendars.map(UUID::fromString),
+            Range.closed(
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli(start), zone),
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli(end), zone),
+            )
+        ).map(eventMapper::eventToEventDto)
 
-                eventRepository
-                    .findAllByCalendar(uuid)
-                    .map(eventMapper::eventToEventDto)
-            }.filter {
-                it.isNotEmpty()
-            }.flatten()
-
-            return ResponseEntity.ok(events as List<EventDto>)
-        } else if (start != null && end != null && timezone != null) {
-            throw Exception();
-        }
-
-        return ResponseEntity.status(400).build()
+        return ResponseEntity.ok(events)
     }
 
     /**
