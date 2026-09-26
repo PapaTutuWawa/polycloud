@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -64,6 +65,14 @@ class ApiController(
         @PathVariable calendarId: UUID,
         @RequestBody request: EventCreationRequestDto,
     ): ResponseEntity<EventDto> = service.createEvent(calendarId, request)
+
+    @Operation(summary = "Updates an event.")
+    @PatchMapping("/calendar/{calendarId}/event")
+    @ResponseStatus(HttpStatus.OK)
+    fun patchEvent(
+        @PathVariable calendarId: UUID,
+        @RequestBody event: EventDto,
+    ): ResponseEntity<EventDto> = service.patchEvent(calendarId, event)
 
     @Operation(summary = "Deletes an event.")
     @DeleteMapping("/calendar/{calendarId}/event/{eventId}")

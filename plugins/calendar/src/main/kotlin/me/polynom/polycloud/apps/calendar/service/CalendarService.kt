@@ -297,4 +297,36 @@ class CalendarService(
         }
         return Pair(calendar, 200)
     }
+
+    /**
+     * Patches an event in the database.
+     *
+     * @param calendarId    The UUID of the calendar.
+     * @param event         The DTO to use for patching.
+     * @return The patched EventDTO, wrapped in a ResponseEntity.
+     */
+    fun patchEvent(calendarId: UUID, event: EventDto): ResponseEntity<EventDto> {
+        // Get the calendar.
+        val calendar = getCalendarByIdWithAccessCheck(calendarId)
+        if (calendar.first == null) {
+            return ResponseEntity.status(calendar.second).build()
+        }
+
+        val entity = Event(
+            id = UUID.fromString(event.id),
+            calendar = calendarId,
+            title = event.title,
+            description = event.description,
+            timeframe = Range.closed(
+                event.start,
+                event.end,
+            ),
+            allDay = event.allDay,
+            place = event.place,
+        )
+        eventRepository.save(entity)
+        entity.color = calendar.first!!.color;
+
+        return ResponseEntity.ok(eventMapper.eventToEventDto(entity))
+    }
 }

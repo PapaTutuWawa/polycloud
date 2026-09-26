@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 class CorsFilter : Filter {
     /** Allowed HTTP methods. */
-    private val allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS").joinToString(",")
+    private val allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS").joinToString(",")
 
     override fun doFilter(
         request: ServletRequest,
