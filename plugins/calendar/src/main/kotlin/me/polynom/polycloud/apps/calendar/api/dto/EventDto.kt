@@ -23,4 +23,6 @@ data class EventDto(
     val place: String?,
     /** The owning calendar's UUID. */
     val calendar: UUID,
+    /** The color of the calendar. */
+    val color: String,
 )

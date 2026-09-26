@@ -38,12 +38,14 @@ interface EventRepository : CrudRepository<Event, UUID> {
     @NativeQuery(
         """
         SELECT
-            *
+            event.*,
+            calendar.color
         FROM
             event
+        JOIN calendar ON event.calendar = calendar.id
         WHERE
-            calendar IN ?1 AND
-            timeframe && ?2
+            event.calendar IN ?1 AND
+            event.timeframe && ?2
         """,
     )
     fun findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(

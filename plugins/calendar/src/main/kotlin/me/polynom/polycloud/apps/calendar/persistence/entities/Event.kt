@@ -8,6 +8,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.SecondaryTable
 import jakarta.persistence.Table
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Type
@@ -19,29 +20,43 @@ import java.util.UUID
  */
 @Entity
 @Table(name = "event")
+@SecondaryTable(name = "calendar")
 class Event(
     /** The ID of the event. */
     @Id
     @GeneratedValue(GenerationType.UUID)
     var id: UUID? = null,
+
     /** The calendar this event belongs to. */
     var calendar: UUID? = null,
+
     /** Title of the event. */
     @NotNull
     var title: String? = null,
+
     /** The description of the event. */
     @Nullable
     var description: String? = null,
+
     /** Timerange of the event. */
     @NotNull
     @Column(name = "timeframe")
     @Type(PostgreSQLRangeType::class)
     var timeframe: Range<ZonedDateTime>? = null,
+
     /** Is the event an all-day event? */
     @NotNull
     @Column(name = "all_day")
     var allDay: Boolean? = null,
+
     /** The place where the event occurs. */
     @Nullable
     var place: String? = null,
+
+    /**
+     * The color of the parent calendar. Defined by the calendar entity itself
+     * and the result of a join, so transient.
+     */
+    @Column(name = "color", table = "calendar")
+    var color: String? = null,
 )
