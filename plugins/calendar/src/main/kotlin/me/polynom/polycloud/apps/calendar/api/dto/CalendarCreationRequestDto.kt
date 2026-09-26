@@ -10,7 +10,7 @@ data class CalendarCreationRequestDto(
     /** Name of the calendar. */
     val name: String,
     /** Optional description of the calendar. */
-    val description: String?,
+    val description: String? = null,
     /** The color of the calendar. */
     val color: String,
     /** Is the calendar public? */
