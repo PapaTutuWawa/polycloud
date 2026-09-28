@@ -29,7 +29,7 @@ import java.util.UUID
 @PluginEnabled
 @RequestMapping("/api/apps/calendar")
 @CrossOrigin
-class ApiController(
+class CalendarApiController(
     /** The logic implementation of the API. */
     private val service: CalendarService,
 ) {
