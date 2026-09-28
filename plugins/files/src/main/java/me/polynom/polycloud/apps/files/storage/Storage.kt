@@ -7,7 +7,7 @@ interface Storage {
     fun listFiles(
         user: String,
         path: StoragePath,
-    ): List<StoragePath>
+    ): List<EntryMeta>
 
     fun getFile(
         user: String,

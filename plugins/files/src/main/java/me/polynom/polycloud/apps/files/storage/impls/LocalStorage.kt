@@ -1,18 +1,15 @@
 package me.polynom.polycloud.apps.files.storage.impls
 
-import com.sun.nio.file.ExtendedOpenOption
+import me.polynom.polycloud.apps.files.storage.EntryMeta
 import me.polynom.polycloud.apps.files.storage.Storage
 import me.polynom.polycloud.apps.files.storage.StoragePath
 import org.apache.tomcat.util.http.fileupload.FileUtils
-import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
-import java.io.FileInputStream
 import java.io.InputStream
-import java.io.OutputStream
 import java.nio.file.Files
-import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import kotlin.io.path.fileSize
 import kotlin.io.path.relativeTo
 
 class LocalStorage(
@@ -32,20 +29,25 @@ class LocalStorage(
     override fun listFiles(
         user: String,
         path: StoragePath,
-    ): List<StoragePath> {
-        if (path.file) {
-            throw IllegalArgumentException("Path references file")
-        }
-
-        val path = resolvePath(user, path)
-        val dir = path.toFile()
-        if (!dir.exists() || dir.isFile) {
+    ): List<EntryMeta> {
+        // Convert storage path to real file on the fs
+        val fsPath = resolvePath(user, path)
+        val file = fsPath.toFile()
+        // If file/directory does not exist return empty list
+        if (!file.exists()) {
             return emptyList()
         }
 
-        val files = dir.listFiles() ?: return emptyList()
-        return files.map {
-            StoragePath("/" + it.toPath().relativeTo(root))
+        // If file exists, return singular item
+        // If directory exists, return all files inside
+        if (file.isFile) {
+            return listOf(EntryMeta(file.name, false, file.length()))
+        } else {
+            val files = file.listFiles() ?: return emptyList()
+            return files.map {
+                val size = if (file.isFile) it.length() else null;
+                EntryMeta(file.name, file.isDirectory, size)
+            }
         }
     }
 
