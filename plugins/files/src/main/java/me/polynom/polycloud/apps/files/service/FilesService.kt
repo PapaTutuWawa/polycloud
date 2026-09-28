@@ -1,6 +1,8 @@
 package me.polynom.polycloud.apps.files.service
 
 import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
+import me.polynom.polycloud.apps.files.exceptions.PathEmptyException
+import me.polynom.polycloud.apps.files.storage.EntryMeta
 import me.polynom.polycloud.apps.files.storage.StoragePath
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.resource.NoResourceFoundException
@@ -14,17 +16,24 @@ class FilesService(
     fun listFiles(
         user: String,
         path: StoragePath,
-    ): List<StoragePath> {
-        val (storage, relPath) = storageService.resolveMount(path)
-        if (storage != null) {
-            return storage.listFiles(user, relPath).map {
-                path.merge(StoragePath(listOf(it.components[it.components.size - 1]), true))
+    ): List<EntryMeta> {
+        // If we list a directory, also retrieve mount points in that path
+        val mounts = if (!path.file) {
+            storageService.listMounts(path).map {
+                EntryMeta(it.components.last(), true, null)
             }
-        } else {
-            // FIXME: iterate mountpoints
-            // FIXME: user facing error
-            throw IllegalArgumentException("MOOP")
-        }
+        } else emptyList()
+
+        // If path resolves to a real storage backend, passthrough request
+        val (storage, relPath) = storageService.resolveMount(path)
+        val files = storage?.listFiles(user, relPath) ?: emptyList()
+
+        // Return both
+        val ret = mounts + files
+        if (ret.isEmpty())
+            throw PathEmptyException(user, path)
+
+        return ret
     }
 
     fun getFile(

@@ -47,4 +47,11 @@ class StorageService(
 
         return Pair(null, path)
     }
+
+    fun listMounts(path: StoragePath): List<StoragePath> =
+        mapper.keys
+            .filter { it.startsWith(path.toString()) }
+            .map { StoragePath(it) }
+            .filter { it.folderDepth() == path.folderDepth() + 1 }
+            .toCollection(ArrayList())
 }
