@@ -1,16 +1,17 @@
 package me.polynom.polycloud.apps.files.storage.impls
 
+import me.polynom.polycloud.apps.files.exceptions.PathEmptyException
 import me.polynom.polycloud.apps.files.storage.EntryMeta
 import me.polynom.polycloud.apps.files.storage.Storage
 import me.polynom.polycloud.apps.files.storage.StoragePath
 import org.apache.tomcat.util.http.fileupload.FileUtils
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
 import java.io.BufferedOutputStream
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import kotlin.io.path.fileSize
-import kotlin.io.path.relativeTo
 
 class LocalStorage(
     val root: Path,
@@ -54,19 +55,18 @@ class LocalStorage(
     override fun getFile(
         user: String,
         path: StoragePath,
-    ): InputStream {
+    ): Resource {
         if (!path.file) {
             throw IllegalArgumentException("Path references folder")
         }
 
-        val path = resolvePath(user, path)
-        val file = path.toFile()
+        val fsPath = resolvePath(user, path)
+        val file = fsPath.toFile()
         if (!file.exists() || !file.isFile) {
-            // FIXME: proper user facing error
-            throw IllegalArgumentException("Path does not exists")
+            throw PathEmptyException(user, path)
         }
 
-        return Files.newInputStream(path, StandardOpenOption.READ)
+        return FileSystemResource(file)
     }
 
     override fun putFile(

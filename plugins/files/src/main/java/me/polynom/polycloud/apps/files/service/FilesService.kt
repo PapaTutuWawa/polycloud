@@ -4,6 +4,7 @@ import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.files.exceptions.PathEmptyException
 import me.polynom.polycloud.apps.files.storage.EntryMeta
 import me.polynom.polycloud.apps.files.storage.StoragePath
+import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import java.io.InputStream
@@ -39,7 +40,7 @@ class FilesService(
     fun getFile(
         user: String,
         path: StoragePath,
-    ): InputStream {
+    ): Resource {
         val (storage, relPath) = storageService.resolveMount(path)
         // FIXME: user facing error
         storage ?: throw IllegalArgumentException("MOOP")
