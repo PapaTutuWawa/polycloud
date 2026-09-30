@@ -2,17 +2,20 @@ package me.polynom.polycloud.apps.files.service
 
 import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.files.exceptions.PathEmptyException
+import me.polynom.polycloud.apps.files.persistence.repository.UploadRepository
 import me.polynom.polycloud.apps.files.storage.EntryMeta
 import me.polynom.polycloud.apps.files.storage.StoragePath
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import java.io.InputStream
+import java.util.UUID
 
 @Component
 @PluginEnabled
 class FilesService(
     val storageService: StorageService,
+    val uploadRepository: UploadRepository,
 ) {
     fun listFiles(
         user: String,
@@ -50,12 +53,22 @@ class FilesService(
     fun putFile(
         user: String,
         path: StoragePath,
-        data: InputStream,
+        slot: UUID,
     ) {
-        val (storage, relPath) = storageService.resolveMount(path)
+        // FIXME: exception
+        val upload = uploadRepository.findById(slot).orElseThrow { PathEmptyException("", StoragePath("")) }
+        if (!upload.done()) {
+            // FIXME: exception
+            throw PathEmptyException("", StoragePath(""))
+        }
+
+        val (storage, relPath) = storageService.resolveMount(StoragePath(upload.path))
         // FIXME: user facing error
         storage ?: throw IllegalArgumentException("MOOP")
-        storage.putFile(user, relPath, data)
+
+        // TODO: do we allow last-minute path deviations? Currently we do not.
+        storage.finaliseUpload(upload.user, relPath, upload)
+        uploadRepository.delete(upload)
     }
 
     fun delete(

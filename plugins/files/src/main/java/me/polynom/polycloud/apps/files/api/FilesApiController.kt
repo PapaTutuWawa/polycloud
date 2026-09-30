@@ -1,6 +1,7 @@
 package me.polynom.polycloud.apps.files.api
 
 import jakarta.servlet.http.HttpServletRequest
+import me.polynom.polycloud.apps.files.api.dto.UploadSlotDto
 import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.files.mappers.EntryMetaMapper
 import me.polynom.polycloud.apps.files.service.FilesService
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody
+import java.util.UUID
 
 @RestController
 @PluginEnabled
@@ -37,31 +39,18 @@ class FilesApiController(
         @PathVariable("path") path: StoragePath,
     ) = filesService.listFiles(user, path).map { entryMetaMapper.entryMetaToEntryMetaDto(it) }
 
-    @PutMapping("/users/{user}/{*path}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun upload(
-        @PathVariable("user") user: String,
-        @PathVariable("path") path: StoragePath,
-        request: HttpServletRequest,
-    ) {
-        val items = FileUpload().getItemIterator(ServletRequestContext(request))
-        while (items.hasNext()) {
-            val item = items.next()
-            if (!item.isFormField && item.fieldName == "file") {
-                filesService.putFile(user, path, item.openStream())
-                return
-            }
-        }
-        // FIXME: user facing error
-        throw IllegalArgumentException("Missing file part")
-    }
-
     @DeleteMapping("/users/{user}/{*path}")
     fun delete(
         @PathVariable("user") user: String,
         @PathVariable("path") path: StoragePath,
-    ) {
-        filesService.delete(user, path)
-    }
+    ) = filesService.delete(user, path)
+
+    @PutMapping("/users/{user}/{*path}")
+    fun putFile(
+        @PathVariable("user") user: String,
+        @PathVariable("path") path: StoragePath,
+        slot: UploadSlotDto,
+    ) = filesService.putFile(user, path, UUID.fromString(slot.slot))
 
     @GetMapping("/download/{user}/{*path}")
     fun download(
