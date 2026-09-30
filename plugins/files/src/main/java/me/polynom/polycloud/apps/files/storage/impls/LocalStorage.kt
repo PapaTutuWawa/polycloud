@@ -1,6 +1,7 @@
 package me.polynom.polycloud.apps.files.storage.impls
 
 import me.polynom.polycloud.apps.files.exceptions.PathEmptyException
+import me.polynom.polycloud.apps.files.persistence.entities.Upload
 import me.polynom.polycloud.apps.files.storage.EntryMeta
 import me.polynom.polycloud.apps.files.storage.Storage
 import me.polynom.polycloud.apps.files.storage.StoragePath
@@ -22,9 +23,9 @@ class LocalStorage(
         path: StoragePath,
     ): Path =
         if (shared) {
-            root.resolve(path.toString().substring(1))
+            root.resolve("storage", path.toString().substring(1))
         } else {
-            root.resolve(user, path.toString().substring(1))
+            root.resolve("storage", user, path.toString().substring(1))
         }
 
     override fun listFiles(
@@ -69,27 +70,6 @@ class LocalStorage(
         return FileSystemResource(file)
     }
 
-    override fun putFile(
-        user: String,
-        path: StoragePath,
-        data: InputStream,
-    ) {
-        if (!path.file) {
-            throw IllegalArgumentException("Path references folder")
-        }
-
-        val path = resolvePath(user, path)
-
-        Files.createDirectories(path.parent)
-        val fos = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
-        val bos = BufferedOutputStream(fos)
-        bos.use { fileStream ->
-            data.use {
-                it.transferTo(fileStream)
-            }
-        }
-    }
-
     override fun delete(
         user: String,
         path: StoragePath,
@@ -104,5 +84,41 @@ class LocalStorage(
             FileUtils.deleteDirectory(path.toFile())
             // FIXME: error handling IllegalArgumentException
         }
+    }
+
+    override fun stageUpload(upload: Upload) {
+        val path = root.resolve("uploads", upload.id!!.toString())
+        Files.createDirectories(path.parent)
+        Files.createFile(path)
+    }
+
+    override fun patchUpload(
+        upload: Upload,
+        stream: InputStream
+    ): Long {
+        val path = root.resolve("uploads", upload.id!!.toString())
+        val fos = Files.newOutputStream(path, StandardOpenOption.WRITE, StandardOpenOption.APPEND)
+        val bos = BufferedOutputStream(fos)
+        bos.use { fileStream ->
+            stream.use {
+                // FIXME: what if client sends more data than we expect?
+                // error out please
+                return it.transferTo(fileStream)
+            }
+        }
+    }
+
+    override fun finaliseUpload(user: String, path: StoragePath, upload: Upload) {
+        if (!path.file) {
+            throw IllegalArgumentException("Path references folder")
+        }
+        val targetPath = resolvePath(user, path)
+        val sourcePath = root.resolve("uploads", upload.id!!.toString())
+        Files.move(sourcePath, targetPath)
+    }
+
+    override fun deleteUpload(upload: Upload) {
+        val path = root.resolve("uploads", upload.id!!.toString())
+        Files.delete(path)
     }
 }
