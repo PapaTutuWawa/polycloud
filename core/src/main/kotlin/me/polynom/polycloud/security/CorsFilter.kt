@@ -30,7 +30,7 @@ class CorsFilter : Filter {
         response.setHeader("Access-Control-Allow-Headers", "Authorization")
 
         // If we have a CORS preflight request, then just terminate here and do not run anything else.
-        if (request.method == "OPTIONS") {
+        if (request.method == "OPTIONS" && request.getHeader("Access-Control-Request-Method") != null) {
             response.status = 200
             return
         }
