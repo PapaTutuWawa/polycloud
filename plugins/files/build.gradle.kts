@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.4.0"
     kotlin("plugin.serialization") version "2.4.20"
     id("org.jetbrains.kotlin.kapt") version "2.4.20"
+    kotlin("plugin.jpa")
 }
 
 group = "me.polynom"
@@ -23,12 +24,18 @@ dependencies {
     // Plugin types
     implementation(project(":pluginBase"))
 
+    // Data JPA
+    compileOnly("org.springframework.boot:spring-boot-starter-data-jpa:4.1.1")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa:4.1.1")
+    implementation("io.hypersistence:hypersistence-utils-hibernate-73:3.15.4")
+
     // Mapstruct
     implementation("org.mapstruct:mapstruct:1.6.3")
     kapt("org.mapstruct:mapstruct-processor:1.6.3")
 
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    testImplementation(kotlin("test"))
 }
 
 repositories {
