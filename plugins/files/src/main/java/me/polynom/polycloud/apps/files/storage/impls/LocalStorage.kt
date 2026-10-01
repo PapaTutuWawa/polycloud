@@ -114,6 +114,7 @@ class LocalStorage(
         }
         val targetPath = resolvePath(user, path)
         val sourcePath = root.resolve("uploads", upload.id!!.toString())
+        Files.createDirectories(targetPath.parent)
         Files.move(sourcePath, targetPath)
     }
 

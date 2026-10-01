@@ -1,5 +1,6 @@
 package me.polynom.polycloud.apps.files.persistence.entities
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -20,10 +21,12 @@ class Upload (
     /** Size of the file that is being uploaded. */
     var size: Long,
     /** The user uploading the file. */
+    @Column(name = "\"user\"")
     var user: String,
     /** The file's intended storage location. */
     var path: String,
     /** Bytes already uploaded */
+    @Column(name = "\"offset\"")
     var offset: Long,
 ) {
     fun done() = offset >= size
