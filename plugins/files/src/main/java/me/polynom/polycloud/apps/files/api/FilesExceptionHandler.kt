@@ -3,6 +3,7 @@ package me.polynom.polycloud.apps.files.api
 import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.files.constants.TusConstants
 import me.polynom.polycloud.apps.files.constants.TusHeaders
+import me.polynom.polycloud.apps.files.exceptions.InvalidUploadMetadataException
 import me.polynom.polycloud.apps.files.exceptions.PathEmptyException
 import me.polynom.polycloud.apps.files.exceptions.WrongTusVersionException
 import org.springframework.http.HttpStatus
@@ -23,4 +24,8 @@ class FilesExceptionHandler {
         ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
             .header(TusHeaders.TUS_VERSION, TusConstants.TUS_VERSION)
             .body(ex.message)
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(InvalidUploadMetadataException::class)
+    fun handleInvalidUploadMetadata() {}
 }
