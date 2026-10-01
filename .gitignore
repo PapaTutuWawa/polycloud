@@ -42,3 +42,7 @@ out/
 ### Private profiles ###
 **/application-ostylk.*
 **/application-papatutuwawa.*
+
+### Nix ###
+result
+result-*

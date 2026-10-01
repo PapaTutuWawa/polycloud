@@ -6,6 +6,10 @@ plugins {
     id("dev.detekt")
 }
 
+repositories {
+    mavenCentral()
+}
+
 spotless {
     kotlin {
         ktlint()
