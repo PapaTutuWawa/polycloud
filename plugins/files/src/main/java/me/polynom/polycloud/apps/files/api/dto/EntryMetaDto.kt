@@ -11,7 +11,7 @@ data class EntryMetaDto(
     /**
      * Whether this entry is a file or a directory
      */
-    val isDirectory: Boolean,
+    val directory: Boolean,
     /**
      * If entry is a file, how big is it in bytes
      */

@@ -14,13 +14,16 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 @PluginEnabled
 class TusVersionHeaders {
     @ModelAttribute
-    fun checkTusVersion(request: HttpServletRequest, response: HttpServletResponse) {
+    fun checkTusVersion(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ) {
         // We only support one version, so make sure to set that header
         response.setHeader(TusHeaders.TUS_RESUMABLE, TusConstants.TUS_VERSION)
 
         // Versioning ignored in OPTIONS request
         if (request.method == RequestMethod.OPTIONS.toString()) {
-            return;
+            return
         }
         // If the client did not send that exact version, throw
         val clientVersion = request.getHeader(TusHeaders.TUS_RESUMABLE) ?: ""

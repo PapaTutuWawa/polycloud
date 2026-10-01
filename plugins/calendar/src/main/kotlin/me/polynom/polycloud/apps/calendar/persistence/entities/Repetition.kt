@@ -9,16 +9,16 @@ import java.time.ZonedDateTime
  */
 enum class RepeatMode {
     /** Event repeats daily. */
-    daily,
+    DAILY,
 
     /** Event repeats weekly. */
-    weekly,
+    WEEKLY,
 
     /** Event repeats monthly. */
-    monthly,
+    MONTHLY,
 
     /** Event repeats yearly. */
-    yearly,
+    YEARLY,
 }
 
 /**
@@ -29,16 +29,13 @@ data class Repetition(
     @Column("repeat_mode")
     @NotNull
     var repeatMode: RepeatMode? = null,
-
     /** Repeat after n units. */
     @Column("repeat_after")
     @NotNull
     var repeatAfter: Int? = null,
-
     /** Repeat n times. */
     @Column("repeat_times")
     var repeatTimes: Int? = null,
-
     /** Repeat until this date. */
     @Column("end_date")
     var repeatUntil: ZonedDateTime? = null,

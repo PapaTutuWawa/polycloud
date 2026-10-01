@@ -200,13 +200,15 @@ class CalendarService(
         timezone: String,
     ): ResponseEntity<List<EventDto>> {
         val zone = ZoneId.of(timezone)
-        val events = eventRepository.findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(
-            request.calendars.map(UUID::fromString),
-            Range.closed(
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(start), zone),
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(end), zone),
-            )
-        ).map(eventMapper::eventToEventDto)
+        val events =
+            eventRepository
+                .findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(
+                    request.calendars.map(UUID::fromString),
+                    Range.closed(
+                        ZonedDateTime.ofInstant(Instant.ofEpochMilli(start), zone),
+                        ZonedDateTime.ofInstant(Instant.ofEpochMilli(end), zone),
+                    ),
+                ).map(eventMapper::eventToEventDto)
 
         return ResponseEntity.ok(events)
     }
@@ -305,27 +307,32 @@ class CalendarService(
      * @param event         The DTO to use for patching.
      * @return The patched EventDTO, wrapped in a ResponseEntity.
      */
-    fun patchEvent(calendarId: UUID, event: EventDto): ResponseEntity<EventDto> {
+    fun patchEvent(
+        calendarId: UUID,
+        event: EventDto,
+    ): ResponseEntity<EventDto> {
         // Get the calendar.
         val calendar = getCalendarByIdWithAccessCheck(calendarId)
         if (calendar.first == null) {
             return ResponseEntity.status(calendar.second).build()
         }
 
-        val entity = Event(
-            id = UUID.fromString(event.id),
-            calendar = calendarId,
-            title = event.title,
-            description = event.description,
-            timeframe = Range.closed(
-                event.start,
-                event.end,
-            ),
-            allDay = event.allDay,
-            place = event.place,
-        )
+        val entity =
+            Event(
+                id = UUID.fromString(event.id),
+                calendar = calendarId,
+                title = event.title,
+                description = event.description,
+                timeframe =
+                    Range.closed(
+                        event.start,
+                        event.end,
+                    ),
+                allDay = event.allDay,
+                place = event.place,
+            )
         eventRepository.save(entity)
-        entity.color = calendar.first!!.color;
+        entity.color = calendar.first!!.color
 
         return ResponseEntity.ok(eventMapper.eventToEventDto(entity))
     }
@@ -339,21 +346,25 @@ class CalendarService(
      * @param request       The client request.
      * @returns A {@link ResponseEntity} that contains the patched entity.
      */
-    fun patchCalendar(calendarId: UUID, request: CalendarDto): ResponseEntity<CalendarDto> {
+    fun patchCalendar(
+        calendarId: UUID,
+        request: CalendarDto,
+    ): ResponseEntity<CalendarDto> {
         // Get the calendar.
         val calendar = getCalendarByIdWithAccessCheck(calendarId)
         if (calendar.first == null) {
             return ResponseEntity.status(calendar.second).build()
         }
 
-        val entity = Calendar(
-            id = calendarId,
-            name = request.name,
-            description = request.description,
-            owner = calendar.first!!.owner,
-            color = request.color,
-            public = request.isPublic,
-        )
+        val entity =
+            Calendar(
+                id = calendarId,
+                name = request.name,
+                description = request.description,
+                owner = calendar.first!!.owner,
+                color = request.color,
+                public = request.isPublic,
+            )
         calendarRepository.save(entity)
 
         return ResponseEntity.ok(calendarMapper.calendarToCalendarDto(entity))

@@ -22,9 +22,7 @@ interface Storage {
         path: StoragePath,
     )
 
-    fun stageUpload(
-        upload: Upload,
-    )
+    fun stageUpload(upload: Upload)
 
     fun patchUpload(
         upload: Upload,
@@ -37,7 +35,5 @@ interface Storage {
         upload: Upload,
     )
 
-    fun deleteUpload(
-        upload: Upload,
-    )
+    fun deleteUpload(upload: Upload)
 }

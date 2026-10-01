@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "2.4.0"
-    kotlin("plugin.serialization") version "2.4.20"
+    kotlin("jvm")
+    kotlin("plugin.serialization")
 }
 
 group = "me.polynom"
@@ -28,6 +28,6 @@ repositories {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+        freeCompilerArgs.addAll("-Xjsr305=strict")
     }
 }

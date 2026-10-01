@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.4.0"
+    kotlin("jvm")
 }
 
 group = "me.polynom"
@@ -17,6 +17,6 @@ repositories {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+        freeCompilerArgs.addAll("-Xjsr305=strict")
     }
 }

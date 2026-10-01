@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.DefaultTransactionDefinition
 import java.io.IOException
+import java.net.URI
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -158,7 +159,7 @@ class MigrationManager(
         // Find out the plugin name
         val pluginName: String
         try {
-            pluginName = URL("jar:file:$jarUrl!/META-INF/plugin").readText()
+            pluginName = URI("jar:file:$jarUrl!/META-INF/plugin").toURL().readText()
         } catch (exception: IOException) {
             logger.error("Failed to read plugin name from $jarUrl")
             throw MigrationFailureException()
@@ -192,7 +193,7 @@ class MigrationManager(
 
         for (migration in migrationsToRun) {
             logger.info("Running migration [{}] for [{}]", migration, pluginName)
-            val content = URL("jar:file:$jarUrl!/db/migrations/$migration").readText()
+            val content = URI("jar:file:$jarUrl!/db/migrations/$migration").toURL().readText()
             runMigration(pluginName, migration, content)
         }
     }

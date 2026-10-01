@@ -14,7 +14,10 @@ interface JwtService {
      * @param roles     The user roles to include in the JWT.
      * @return The signed JWT.
      */
-    fun generateAuthToken(username: String, roles: List<String>): AuthToken
+    fun generateAuthToken(
+        username: String,
+        roles: List<String>,
+    ): AuthToken
 
     /**
      * Verifies the signature of a JWT.
@@ -37,7 +40,10 @@ interface JwtService {
      *
      * @param token The refresh token.
      */
-    fun saveRefreshToken(username: String, token: String)
+    fun saveRefreshToken(
+        username: String,
+        token: String,
+    )
 
     /**
      * Checks if the refresh token is in the database like that.
@@ -53,5 +59,9 @@ interface JwtService {
      * @param old   The old refresh token.
      * @param new   The new refresh token.
      */
-    fun replaceRefreshToken(username: String, old: String, new: String)
+    fun replaceRefreshToken(
+        username: String,
+        old: String,
+        new: String,
+    )
 }

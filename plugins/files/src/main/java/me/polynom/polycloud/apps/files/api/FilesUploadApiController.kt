@@ -1,9 +1,9 @@
 package me.polynom.polycloud.apps.files.api
 
+import jakarta.validation.constraints.PositiveOrZero
 import me.polynom.polycloud.apps.files.api.dto.TusUploadMetadata
 import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.files.constants.TusConstants
-import jakarta.validation.constraints.PositiveOrZero
 import me.polynom.polycloud.apps.files.constants.TusHeaders
 import me.polynom.polycloud.apps.files.exceptions.InvalidUploadMetadataException
 import me.polynom.polycloud.apps.files.service.UploadService
@@ -28,8 +28,9 @@ import java.util.UUID
 @RestController
 @PluginEnabled
 @RequestMapping("/api/apps/files")
-class FilesUploadApiController(val uploadService: UploadService) {
-
+class FilesUploadApiController(
+    val uploadService: UploadService,
+) {
     @PostMapping("/upload")
     fun createUpload(
         @RequestHeader(TusHeaders.UPLOAD_LENGTH)
@@ -37,24 +38,27 @@ class FilesUploadApiController(val uploadService: UploadService) {
         uploadLength: Long,
         @RequestHeader(TusHeaders.UPLOAD_METADATA)
         metadata: TusUploadMetadata,
-    ) = ResponseEntity.created(uploadService.createUpload(uploadLength, metadata))
-            .build<Unit>()
-
+    ) = ResponseEntity
+        .created(uploadService.createUpload(uploadLength, metadata))
+        .build<Unit>()
 
     @RequestMapping("/upload", method = [RequestMethod.OPTIONS])
     fun optUpload(): ResponseEntity<Unit> =
-        ResponseEntity.noContent()
+        ResponseEntity
+            .noContent()
             .header(TusHeaders.TUS_VERSION, TusConstants.TUS_VERSION)
             .header(TusHeaders.TUS_EXTENSION, TusConstants.TUS_EXTENSIONS)
             .build()
 
     @RequestMapping("/upload/{slot}", method = [RequestMethod.OPTIONS])
-    fun optUploadSlot() =
-        optUpload()
+    fun optUploadSlot() = optUpload()
 
     @RequestMapping("/upload/{slot}", method = [RequestMethod.HEAD])
-    fun statUpload(@PathVariable("slot") slot: UUID): ResponseEntity<Unit> =
-        ResponseEntity.noContent()
+    fun statUpload(
+        @PathVariable("slot") slot: UUID,
+    ): ResponseEntity<Unit> =
+        ResponseEntity
+            .noContent()
             .header(TusHeaders.UPLOAD_OFFSET, uploadService.retrieveOffset(slot).toString())
             .cacheControl(CacheControl.noStore())
             .build()
@@ -65,15 +69,17 @@ class FilesUploadApiController(val uploadService: UploadService) {
         slot: UUID,
         @RequestHeader(TusHeaders.UPLOAD_OFFSET)
         offset: Long,
-        body: InputStream
+        body: InputStream,
     ): ResponseEntity<Unit> =
         // FIXME: validate offset value is as expected (otherwise 409 Conflicted)
-        ResponseEntity.noContent()
+        ResponseEntity
+            .noContent()
             .header(TusHeaders.UPLOAD_OFFSET, uploadService.patchUpload(slot, offset, body).toString())
             .build()
 
     @DeleteMapping("/upload/{slot}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteUpload(@PathVariable("slot") slot: UUID) =
-        uploadService.deleteUpload(slot)
+    fun deleteUpload(
+        @PathVariable("slot") slot: UUID,
+    ) = uploadService.deleteUpload(slot)
 }

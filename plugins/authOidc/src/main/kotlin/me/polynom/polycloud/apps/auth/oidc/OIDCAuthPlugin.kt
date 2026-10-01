@@ -105,7 +105,7 @@ class OIDCAuthPlugin(
 
         // Discover JWKS
         jwksProvider =
-            JwkProviderBuilder(URL(oidcConfig.jwks))
+            JwkProviderBuilder(URI(oidcConfig.jwks).toURL())
                 .cached(true)
                 .build()
         jwkRsaProvider = RSAKeyProvider(jwksProvider)

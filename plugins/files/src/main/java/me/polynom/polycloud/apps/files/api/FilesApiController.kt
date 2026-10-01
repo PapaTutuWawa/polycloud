@@ -58,18 +58,21 @@ class FilesApiController(
         @PathVariable("user") user: String,
         @PathVariable("path") path: StoragePath,
     ): ResponseEntity<Resource> {
-        val resource: Resource = filesService.getFile(user, path);
+        val resource: Resource = filesService.getFile(user, path)
         val lastModified = resource.lastModified()
         val etag = "${lastModified.toString(16)}-${resource.contentLength().toString(16)}"
 
-        val contentDisposition = ContentDisposition.attachment()
-            .filename(path.components.last())
-            .build();
+        val contentDisposition =
+            ContentDisposition
+                .attachment()
+                .filename(path.components.last())
+                .build()
 
-        return ResponseEntity.ok()
+        return ResponseEntity
+            .ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .eTag(etag)
-            .body(resource);
+            .body(resource)
     }
 }

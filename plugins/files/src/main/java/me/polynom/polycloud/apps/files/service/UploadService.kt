@@ -15,9 +15,14 @@ import java.util.UUID
 
 @Service
 @PluginEnabled
-class UploadService (val uploadRepository: UploadRepository, val storageService: StorageService) {
-
-    fun createUpload(uploadLength: Long, metadata: TusUploadMetadata): URI {
+class UploadService(
+    val uploadRepository: UploadRepository,
+    val storageService: StorageService,
+) {
+    fun createUpload(
+        uploadLength: Long,
+        metadata: TusUploadMetadata,
+    ): URI {
         // FIXME: validate user :) permissions? yes, we don't have 'em
         val user = metadata["user"] ?: throw InvalidUploadMetadataException("No user provided in metadata")
         val rawPath = metadata["path"] ?: throw InvalidUploadMetadataException("No path provided in metadata")
@@ -27,12 +32,13 @@ class UploadService (val uploadRepository: UploadRepository, val storageService:
         val (storage, _) = storageService.resolveMount(path)
         storage ?: throw PathEmptyException(user, path)
 
-        val entity = Upload(
-            user = user,
-            path = path.toString(),
-            size = uploadLength,
-            offset = 0,
-        )
+        val entity =
+            Upload(
+                user = user,
+                path = path.toString(),
+                size = uploadLength,
+                offset = 0,
+            )
         uploadRepository.save(entity)
 
         storage.stageUpload(entity)
@@ -49,14 +55,19 @@ class UploadService (val uploadRepository: UploadRepository, val storageService:
 
     fun retrieveOffset(id: UUID): Long {
         // FIXME: better exception
-        val upload = uploadRepository.findById(id).orElseThrow {
-            PathEmptyException("", StoragePath(""))
-        }
+        val upload =
+            uploadRepository.findById(id).orElseThrow {
+                PathEmptyException("", StoragePath(""))
+            }
 
         return upload.offset
     }
 
-    fun patchUpload(id: UUID, offset: Long, body: InputStream): Long {
+    fun patchUpload(
+        id: UUID,
+        offset: Long,
+        body: InputStream,
+    ): Long {
         // FIXME: exception
         val upload = uploadRepository.findById(id).orElseThrow { PathEmptyException("", StoragePath("")) }
         if (upload.offset != offset) {

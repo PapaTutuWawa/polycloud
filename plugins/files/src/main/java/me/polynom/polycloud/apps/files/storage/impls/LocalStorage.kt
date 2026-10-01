@@ -47,7 +47,7 @@ class LocalStorage(
         } else {
             val files = file.listFiles() ?: return emptyList()
             return files.map {
-                val size = if (file.isFile) it.length() else null;
+                val size = if (file.isFile) it.length() else null
                 EntryMeta(file.name, file.isDirectory, size)
             }
         }
@@ -94,7 +94,7 @@ class LocalStorage(
 
     override fun patchUpload(
         upload: Upload,
-        stream: InputStream
+        stream: InputStream,
     ): Long {
         val path = root.resolve("uploads", upload.id!!.toString())
         val fos = Files.newOutputStream(path, StandardOpenOption.WRITE, StandardOpenOption.APPEND)
@@ -108,7 +108,11 @@ class LocalStorage(
         }
     }
 
-    override fun finaliseUpload(user: String, path: StoragePath, upload: Upload) {
+    override fun finaliseUpload(
+        user: String,
+        path: StoragePath,
+        upload: Upload,
+    ) {
         if (!path.file) {
             throw IllegalArgumentException("Path references folder")
         }

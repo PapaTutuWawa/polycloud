@@ -9,10 +9,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class JwtConfig(
     /** The secret for JWT signatures. */
     val secret: String,
-    /** Lifetime of the token in seconds. */
-    val tokenLifetime: Long = 7*86400, // 7 day.
-    /** Lifetime of the refresh token in seconds. */
-    val refreshLifetime: Long = 15552000, // 180 day.
-    /** Minimum number of seconds from the end of the refresh time that you can request. */
-    val minimumRefreshTime: Long = 86400, // 1 day
+    /** Lifetime of the token in seconds. Defaults to 7 days. */
+    val tokenLifetime: Long = 7 * 86400,
+    /** Lifetime of the refresh token in seconds. Defaults to 180 days. */
+    val refreshLifetime: Long = 15552000,
+    /** Minimum number of seconds from the end of the refresh time that you can request. Defaults to 1 day. */
+    val minimumRefreshTime: Long = 86400,
 )

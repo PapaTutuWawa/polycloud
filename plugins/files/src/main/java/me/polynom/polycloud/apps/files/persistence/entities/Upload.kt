@@ -13,7 +13,7 @@ import java.util.UUID
  */
 @Entity
 @Table(name = "uploads")
-class Upload (
+class Upload(
     /** Primary key. */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

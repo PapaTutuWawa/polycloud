@@ -65,15 +65,17 @@ class StubAuthPlugin(
             jwtService.saveRefreshToken("user", token.refreshToken)
             return ResponseEntity.ok(
                 AuthResult(
-                    auth = AuthResult.Token(
-                        token.authToken,
-                        token.authTokenExpiryIn,
-                    ),
-                    refresh = AuthResult.Token(
-                        token.refreshToken,
-                        token.refreshTokenExpiryIn,
-                    ),
-                )
+                    auth =
+                        AuthResult.Token(
+                            token.authToken,
+                            token.authTokenExpiryIn,
+                        ),
+                    refresh =
+                        AuthResult.Token(
+                            token.refreshToken,
+                            token.refreshTokenExpiryIn,
+                        ),
+                ),
             )
         }
 

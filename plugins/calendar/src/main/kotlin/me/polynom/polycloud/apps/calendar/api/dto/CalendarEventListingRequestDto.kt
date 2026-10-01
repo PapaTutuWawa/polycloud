@@ -7,7 +7,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CalendarEventListingRequestDto(
-    /** Calendars to list from. */
-    // TODO: Deserialize this to UUID
+    /** Calendars to list from. TODO: Deserialize this to UUID */
     val calendars: List<String>,
 )

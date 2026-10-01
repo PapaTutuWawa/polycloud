@@ -21,7 +21,8 @@ class FilesExceptionHandler {
 
     @ExceptionHandler(WrongTusVersionException::class)
     fun handleMissingHeader(ex: WrongTusVersionException): ResponseEntity<String> =
-        ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
+        ResponseEntity
+            .status(HttpStatus.PRECONDITION_FAILED)
             .header(TusHeaders.TUS_VERSION, TusConstants.TUS_VERSION)
             .body(ex.message)
 

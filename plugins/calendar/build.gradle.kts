@@ -1,8 +1,8 @@
 plugins {
-    kotlin("jvm") version "2.4.0"
-    kotlin("plugin.serialization") version "2.4.20"
-    id("org.jetbrains.kotlin.kapt") version "2.4.20"
-    id("org.jetbrains.kotlin.plugin.jpa") version "2.4.20"
+    kotlin("jvm")
+    kotlin("plugin.serialization")
+    id("org.jetbrains.kotlin.kapt")
+    id("org.jetbrains.kotlin.plugin.jpa")
 }
 
 group = "me.polynom"
@@ -53,7 +53,7 @@ repositories {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+        freeCompilerArgs.addAll("-Xjsr305=strict")
     }
 }
 

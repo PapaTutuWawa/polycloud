@@ -37,15 +37,16 @@ class UploadMetadataConverter : Converter<String, TusUploadMetadata> {
             }
 
             val encodedValue = parts.getOrNull(1)?.trim()
-            val value = if (encodedValue.isNullOrEmpty()) {
-                ""
-            } else {
-                try {
-                    decoder.decode(encodedValue).toString(Charsets.UTF_8)
-                } catch (e: IllegalArgumentException) {
-                    throw InvalidUploadMetadataException("value for key '$key' is not valid Base64 or does not contain valid UTF-8")
+            val value =
+                if (encodedValue.isNullOrEmpty()) {
+                    ""
+                } else {
+                    try {
+                        decoder.decode(encodedValue).toString(Charsets.UTF_8)
+                    } catch (e: IllegalArgumentException) {
+                        throw InvalidUploadMetadataException("value for key '$key' is not valid Base64 or does not contain valid UTF-8")
+                    }
                 }
-            }
 
             result[key] = value
         }
