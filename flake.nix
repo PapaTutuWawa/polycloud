@@ -35,6 +35,10 @@
         };
       }) nixpkgs.legacyPackages;
 
+      packages = builtins.mapAttrs (system: pkgs: {
+        default = pkgs.callPackage ./nix/packages/polycloud { };
+      }) nixpkgs.legacyPackages;
+
       devShells = builtins.mapAttrs (system: pkgs: {
         default = pkgs.callPackage ./nix/shell.nix {
           pre-commit = self.checks.${system}.pre-commit-check;
