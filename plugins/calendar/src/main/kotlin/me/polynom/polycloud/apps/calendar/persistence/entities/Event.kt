@@ -4,6 +4,7 @@ import io.hypersistence.utils.hibernate.type.range.PostgreSQLRangeType
 import io.hypersistence.utils.hibernate.type.range.Range
 import jakarta.annotation.Nullable
 import jakarta.persistence.Column
+import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -59,4 +60,8 @@ class Event(
      */
     @Column(name = "color", table = "calendar")
     var color: String? = null,
+
+    /** Repetition config. */
+    @Column(name = "repeat", co)
+    var repeat: String? = null,
 )
