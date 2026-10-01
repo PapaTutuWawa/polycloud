@@ -1,4 +1,4 @@
-package me.polynom.polycloud.apps.auth.oidc.config
+package me.polynom.polycloud.apps.auth.oidc.config.dto
 
 /**
  * Configuration discovered using OAuth's .well-known directory.

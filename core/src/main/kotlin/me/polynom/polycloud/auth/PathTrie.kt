@@ -9,9 +9,6 @@ class PathTrie(
     /** The mapping of path segments to the next node in the trie. */
     private val mapping: MutableMap<String, PathTrie> = mutableMapOf()
 
-    /** The ending path segment of a multi wildcard. */
-    private var multiWildcardEnd: String? = null
-
     /** Indicator if this node is the terminal for a path. */
     private var isTerminal: Boolean = false
 
@@ -54,7 +51,6 @@ class PathTrie(
         val trie = PathTrie(segment)
         mapping[segment] = trie
         if (segment == "**") {
-            multiWildcardEnd = nextSegment
             if (nextSegment == null) {
                 trie.isTerminal = true
             }
@@ -102,6 +98,7 @@ class PathTrie(
      * @param segments The path segments.
      * @return The trie node at the end or null, if we did not land on a terminal node.
      */
+    @Suppress("ReturnCount")
     fun traverse(segments: List<String>): PathTrie? {
         if (segments.isEmpty()) {
             return this

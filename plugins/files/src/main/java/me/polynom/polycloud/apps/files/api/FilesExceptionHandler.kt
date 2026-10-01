@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 class FilesExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(PathEmptyException::class)
-    fun handlePathEmpty() {}
+    fun handlePathEmpty() = Unit
 
     @ExceptionHandler(WrongTusVersionException::class)
     fun handleMissingHeader(ex: WrongTusVersionException): ResponseEntity<String> =
@@ -28,5 +28,5 @@ class FilesExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidUploadMetadataException::class)
-    fun handleInvalidUploadMetadata() {}
+    fun handleInvalidUploadMetadata() = Unit
 }

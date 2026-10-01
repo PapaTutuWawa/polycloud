@@ -1,6 +1,6 @@
 package me.polynom.polycloud.plugin.auth
 
-import me.polynom.polycloud.plugin.PolycloudPlugin
+import me.polynom.polycloud.plugin.app.PolycloudPlugin
 import me.polynom.polycloud.plugin.auth.dto.AuthPluginData
 import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 

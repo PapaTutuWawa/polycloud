@@ -1,6 +1,6 @@
 package me.polynom.polycloud.apps.auth.oidc.autoconfigure
 
-import me.polynom.polycloud.apps.auth.oidc.config.OIDCConfig
+import me.polynom.polycloud.apps.auth.oidc.config.dto.OIDCConfig
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 

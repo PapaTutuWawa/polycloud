@@ -19,6 +19,7 @@ class UploadService(
     val uploadRepository: UploadRepository,
     val storageService: StorageService,
 ) {
+    @Suppress("ThrowsCount")
     fun createUpload(
         uploadLength: Long,
         metadata: TusUploadMetadata,

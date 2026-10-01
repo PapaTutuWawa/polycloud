@@ -1,4 +1,4 @@
-package me.polynom.polycloud.apps.auth.oidc.config
+package me.polynom.polycloud.apps.auth.oidc.config.dto
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.bind.ConstructorBinding

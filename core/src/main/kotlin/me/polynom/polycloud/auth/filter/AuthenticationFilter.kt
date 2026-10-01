@@ -25,6 +25,7 @@ class AuthenticationFilter(
     /** Logger. */
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
+    @Suppress("ReturnCount")
     override fun doFilter(
         request: ServletRequest,
         response: ServletResponse,

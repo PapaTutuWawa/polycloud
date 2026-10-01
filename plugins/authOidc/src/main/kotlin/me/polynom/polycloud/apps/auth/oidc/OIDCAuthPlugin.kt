@@ -7,9 +7,9 @@ import com.auth0.jwt.exceptions.JWTVerificationException
 import kotlinx.serialization.json.Json
 import me.polynom.polycloud.apps.auth.oidc.api.dto.AuthResult
 import me.polynom.polycloud.apps.auth.oidc.autoconfigure.PluginEnabled
-import me.polynom.polycloud.apps.auth.oidc.config.OIDCConfig
-import me.polynom.polycloud.apps.auth.oidc.config.OIDCDiscoveredConfig
-import me.polynom.polycloud.apps.auth.oidc.jwt.RSAKeyProvider
+import me.polynom.polycloud.apps.auth.oidc.config.dto.OIDCConfig
+import me.polynom.polycloud.apps.auth.oidc.config.dto.OIDCDiscoveredConfig
+import me.polynom.polycloud.apps.auth.oidc.jwt.JwtRSAKeyProvider
 import me.polynom.polycloud.apps.auth.oidc.rest.OIDCDiscoveryResponse
 import me.polynom.polycloud.plugin.auth.JwtService
 import me.polynom.polycloud.plugin.auth.PolycloudAuthPlugin
@@ -18,6 +18,7 @@ import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.util.MultiValueMap
@@ -26,9 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.util.UriBuilder
 import java.net.URI
-import java.net.URL
 import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -47,16 +46,16 @@ class OIDCAuthPlugin(
     val jwtService: JwtService,
 ) : PolycloudAuthPlugin {
     /** Logging. */
-    val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     /** OIDC config. */
-    lateinit var oidcConfig: OIDCDiscoveredConfig
+    private lateinit var oidcConfig: OIDCDiscoveredConfig
 
     /** The provider handling JWKS fetching. */
-    lateinit var jwksProvider: JwkProvider
+    private lateinit var jwksProvider: JwkProvider
 
     /** Glue between java-jwt and jwt-rsa. */
-    lateinit var jwkRsaProvider: RSAKeyProvider
+    private lateinit var jwkRsaProvider: JwtRSAKeyProvider
 
     override fun getData(): AuthPluginData =
         AuthPluginData(
@@ -89,8 +88,9 @@ class OIDCAuthPlugin(
                 java.net.http.HttpResponse.BodyHandlers
                     .ofString(),
             )
-        if (responseRaw.statusCode() != 200) {
-            throw Exception("Failed to discover OIDC metadata")
+
+        if (responseRaw.statusCode() != HttpStatus.OK.value()) {
+            throw IllegalStateException("Failed to discover OIDC metadata")
         }
 
         val response = Json.decodeFromString<OIDCDiscoveryResponse>(responseRaw.body())
@@ -108,22 +108,25 @@ class OIDCAuthPlugin(
             JwkProviderBuilder(URI(oidcConfig.jwks).toURL())
                 .cached(true)
                 .build()
-        jwkRsaProvider = RSAKeyProvider(jwksProvider)
+        jwkRsaProvider = JwtRSAKeyProvider(jwksProvider)
     }
 
+    @Suppress("ReturnCount")
     @PostMapping("/authenticate")
     fun authenticate(
         @RequestHeader("Authorization") authHeader: String?,
     ): ResponseEntity<AuthResult> {
         if (authHeader == null) {
-            return ResponseEntity.status(401).build()
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED.value()).build()
         }
 
-        if (!authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).build()
+        val prefix = "Bearer "
+
+        if (!authHeader.startsWith(prefix)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED.value()).build()
         }
 
-        val t = authHeader.substring(7)
+        val t = authHeader.substring(prefix.length)
         val algo =
             com.auth0.jwt.algorithms.Algorithm
                 .RSA256(jwkRsaProvider)
@@ -154,7 +157,7 @@ class OIDCAuthPlugin(
             )
         } catch (e: JWTVerificationException) {
             logger.warn("JWTVerificationException", e)
-            return ResponseEntity.status(403).build()
+            return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).build()
         }
     }
 

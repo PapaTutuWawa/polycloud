@@ -1,7 +1,7 @@
 package me.polynom.polycloud.apps.calendar
 
 import me.polynom.polycloud.apps.calendar.autoconfigure.PluginEnabled
-import me.polynom.polycloud.plugin.PolycloudPlugin
+import me.polynom.polycloud.plugin.app.PolycloudPlugin
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

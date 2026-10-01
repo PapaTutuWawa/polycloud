@@ -7,7 +7,7 @@ import me.polynom.polycloud.api.dto.EnabledAppDto
 import me.polynom.polycloud.api.dto.EnabledAppsDto
 import me.polynom.polycloud.api.dto.HealthDto
 import me.polynom.polycloud.auth.jwt.JwtAuthPlugin
-import me.polynom.polycloud.plugin.PolycloudPlugin
+import me.polynom.polycloud.plugin.app.PolycloudPlugin
 import me.polynom.polycloud.plugin.auth.PolycloudAuthPlugin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

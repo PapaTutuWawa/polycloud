@@ -10,7 +10,7 @@ data class JwtConfig(
     /** The secret for JWT signatures. */
     val secret: String,
     /** Lifetime of the token in seconds. Defaults to 7 days. */
-    val tokenLifetime: Long = 7 * 86400,
+    val tokenLifetime: Long = 604800,
     /** Lifetime of the refresh token in seconds. Defaults to 180 days. */
     val refreshLifetime: Long = 15552000,
     /** Minimum number of seconds from the end of the refresh time that you can request. Defaults to 1 day. */

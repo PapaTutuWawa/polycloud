@@ -28,6 +28,7 @@ class LocalStorage(
             root.resolve("storage", user, path.toString().substring(1))
         }
 
+    @Suppress("ReturnCount")
     override fun listFiles(
         user: String,
         path: StoragePath,

@@ -2,7 +2,7 @@ package me.polynom.polycloud
 
 import me.polynom.polycloud.config.JwtConfig
 import me.polynom.polycloud.database.MigrationManager
-import me.polynom.polycloud.plugin.PolycloudPlugin
+import me.polynom.polycloud.plugin.app.PolycloudPlugin
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.context.properties.EnableConfigurationProperties

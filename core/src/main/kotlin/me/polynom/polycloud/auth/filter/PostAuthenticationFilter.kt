@@ -12,6 +12,7 @@ import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.annotation.Order
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 
 /**
@@ -26,6 +27,7 @@ class PostAuthenticationFilter(
     /** Logging. */
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
+    @Suppress("ReturnCount")
     override fun doFilter(
         request: ServletRequest,
         response: ServletResponse,
@@ -53,9 +55,9 @@ class PostAuthenticationFilter(
             // Return a 401, if the client did not provide authentication at all, and a 403 if it was wrong.
             httpResponse.status =
                 if (!(request.getAttribute(AuthenticationData.REQUEST_ATTRIBUTE_PRESENT) as Boolean)) {
-                    401
+                    HttpStatus.UNAUTHORIZED.value()
                 } else {
-                    403
+                    HttpStatus.FORBIDDEN.value()
                 }
             return
         }

@@ -2,7 +2,7 @@ package me.polynom.polycloud.apps.example
 
 import me.polynom.polycloud.apps.example.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.example.dto.ExampleResponseDto
-import me.polynom.polycloud.plugin.PolycloudPlugin
+import me.polynom.polycloud.plugin.app.PolycloudPlugin
 import me.polynom.polycloud.plugin.auth.UserContext
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.GetMapping

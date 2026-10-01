@@ -144,6 +144,7 @@ class CalendarService(
      * @param calendarId    The ID of the calendar.
      * @return A {@link ResponseEntity} that may or may not contain the event list.
      */
+    @Suppress("ReturnCount")
     fun getEvents(
         calendarId: UUID,
         start: Long?,
@@ -181,7 +182,7 @@ class CalendarService(
             )
         }
 
-        return ResponseEntity.status(400).build()
+        return ResponseEntity.badRequest().build()
     }
 
     /**
@@ -219,6 +220,7 @@ class CalendarService(
      * @param calendarId    The ID of the calendar.
      * @return A {@link ResponseEntity} that only sets the status code.
      */
+    @Suppress("ReturnCount")
     fun deleteCalendar(calendarId: UUID): ResponseEntity<Void> {
         // This endpoint must be authenticated.
         if (userContext.getUser() == null) {
@@ -270,6 +272,7 @@ class CalendarService(
      * @return A pair of the calendar entity (or null if we cannot find it or the user cannot see it) and the
      *         suggested HTTP status code.
      */
+    @Suppress("ReturnCount")
     fun getCalendarByIdWithAccessCheck(calendarId: UUID): Pair<Calendar?, Int> {
         logger.debug("Querying calendar with id {}", calendarId)
         val calendar = calendarRepository.findByIdOrNull(calendarId)
@@ -277,27 +280,27 @@ class CalendarService(
         val user = userContext.getUser()
         if (calendar == null) {
             return if (user == null) {
-                Pair(null, 403)
+                Pair(null, HttpStatus.FORBIDDEN.value())
             } else {
-                Pair(null, 404)
+                Pair(null, HttpStatus.NOT_FOUND.value())
             }
         }
 
         if (user != null && !calendar.public!!) {
             // TODO: Sharing calendars?
             return if (calendar.owner == user.username) {
-                Pair(calendar, 200)
+                Pair(calendar, HttpStatus.OK.value())
             } else {
-                Pair(null, 404)
+                Pair(null, HttpStatus.NOT_FOUND.value())
             }
         }
 
         // Unauthenticated and calendar does exist
         if (!calendar.public!!) {
             logger.debug("Returning 403 for non-public calendar")
-            return Pair(null, 403)
+            return Pair(null, HttpStatus.FORBIDDEN.value())
         }
-        return Pair(calendar, 200)
+        return Pair(calendar, HttpStatus.OK.value())
     }
 
     /**

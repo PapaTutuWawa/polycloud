@@ -1,7 +1,9 @@
+import dev.detekt.gradle.Detekt
+
 plugins {
     id("java-library")
     id("com.diffplug.spotless")
-    id("com.github.spotbugs")
+    id("dev.detekt")
 }
 
 spotless {
@@ -10,14 +12,14 @@ spotless {
     }
 }
 
-spotbugs {
-    showProgress = true
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(rootProject.layout.projectDirectory.file("config/detekt/detekt.yml"))
 }
 
-tasks.spotbugsMain {
-    reports.create("html") {
-        required = true
-        outputLocation = file("$buildDir/reports/spotbugs.html")
-        setStylesheet("fancy-hist.xsl")
+tasks.withType<Detekt>().configureEach {
+    reports {
+        html.required = true
+        html.outputLocation = file("$buildDir/reports/detekt.html")
     }
 }

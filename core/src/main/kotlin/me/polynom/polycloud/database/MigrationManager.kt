@@ -50,6 +50,7 @@ class MigrationManager(
      * To initialize the database, i.e. create the table that contains the migration records, we
      * have to do it here since
      */
+    @Suppress("TooGenericExceptionCaught")
     fun initialiseDatabase() {
         val status = transactionManager.getTransaction(DefaultTransactionDefinition())
         try {
@@ -162,20 +163,22 @@ class MigrationManager(
             pluginName = URI("jar:file:$jarUrl!/META-INF/plugin").toURL().readText()
         } catch (exception: IOException) {
             logger.error("Failed to read plugin name from $jarUrl")
-            throw MigrationFailureException()
+            throw MigrationFailureException(exception)
         }
 
         val latestMigration = getLatestMigration(pluginName)
         logger.debug("Discovered [{}] as latest version for [{}]", pluginName, latestMigration)
         val migrations =
-            jar
-                .entries()
-                .toList()
-                .filter {
-                    it.name.startsWith("db/migrations/") && it.name != "db/migrations/"
-                }.map {
-                    it.name.split("/").last()
-                }.toMutableList()
+            jar.use {
+                it
+                    .entries()
+                    .toList()
+                    .filter {
+                        it.name.startsWith("db/migrations/") && it.name != "db/migrations/"
+                    }.map {
+                        it.name.split("/").last()
+                    }.toMutableList()
+            }
         val migrationsToRun =
             migrations.filter filter@{
                 if (latestMigration == null) {
@@ -205,6 +208,7 @@ class MigrationManager(
      * @param name          The name of the migration that is run.
      * @param content       The SQL script to run as the migration.
      */
+    @Suppress("TooGenericExceptionCaught")
     private fun runMigration(
         pluginName: String,
         name: String,

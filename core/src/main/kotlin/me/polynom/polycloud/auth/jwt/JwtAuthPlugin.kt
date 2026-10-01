@@ -13,6 +13,7 @@ import me.polynom.polycloud.plugin.auth.dto.AuthPluginData
 import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -24,6 +25,8 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.Instant
 import java.time.ZonedDateTime
+
+private const val PREFIX_LENGTH = "Bearer ".length
 
 /**
  * Authentication plugin for JWT bearer tokens.
@@ -50,9 +53,9 @@ class JwtAuthPlugin(
             data = null,
         )
 
-    override fun verify(token: String): AuthVerificationResult? = jwtService.verifyAuthToken(token.substring(7))
+    override fun verify(token: String): AuthVerificationResult? = jwtService.verifyAuthToken(token.substring(PREFIX_LENGTH))
 
-    override fun register() {}
+    override fun register() = Unit
 
     @GetMapping("/whoami")
     @SecurityRequirement(name = "jwt")
@@ -62,25 +65,26 @@ class JwtAuthPlugin(
             userContext.getUser()!!.roles,
         )
 
+    @Suppress("ReturnCount")
     @PostMapping("/refresh")
     @SecurityRequirement(name = "jwt")
     fun refresh(
         @RequestHeader("Authorization") authHeader: String,
     ): ResponseEntity<TokenRefreshDto> {
         if (!authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(403).build()
+            return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).build()
         }
 
         // Verify the refresh token (valid JWT + it is in the database).
-        val refreshTokenValue = authHeader.substring(7)
+        val refreshTokenValue = authHeader.substring(PREFIX_LENGTH)
         val refreshTokenResult = jwtService.verifyRefreshToken(refreshTokenValue)
         if (refreshTokenResult == null) {
             logger.debug("Refresh token invalid")
-            return ResponseEntity.status(403).build()
+            return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).build()
         }
         if (!jwtService.hasRefreshToken(refreshTokenValue)) {
             logger.debug("Refresh token not in database")
-            return ResponseEntity.status(403).build()
+            return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).build()
         }
 
         // Generate a new token and put it into the database.

@@ -1,9 +1,9 @@
 plugins {
-    kotlin("jvm") version "2.4.20" apply false
+    kotlin("jvm") apply false
     kotlin("plugin.serialization") version "2.4.20" apply false
     kotlin("plugin.spring") version "2.4.20" apply false
     kotlin("plugin.jpa") version "2.4.20" apply false
-    id("org.jetbrains.kotlin.kapt") version "2.4.20" apply false
+    id("org.jetbrains.kotlin.kapt") apply false
 }
 
 allprojects {
@@ -29,6 +29,6 @@ tasks.register("lint") {
     description = "Runs the linter and formatter on all projects"
     subprojects.forEach {
         dependsOn(it.tasks.named("spotlessApply"))
-        dependsOn(it.tasks.named("spotbugsMain"))
+        dependsOn(it.tasks.named("detekt"))
     }
 }

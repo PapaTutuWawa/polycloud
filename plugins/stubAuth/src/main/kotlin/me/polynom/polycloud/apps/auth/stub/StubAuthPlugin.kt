@@ -7,6 +7,7 @@ import me.polynom.polycloud.plugin.auth.PolycloudAuthPlugin
 import me.polynom.polycloud.plugin.auth.dto.AuthPluginData
 import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
@@ -42,21 +43,23 @@ class StubAuthPlugin(
         logger.info("StubAuthPlugin registered")
     }
 
+    @Suppress("ReturnCount")
     @PostMapping("/authenticate")
     fun authenticate(
         @RequestHeader("Authorization") authHeader: String?,
     ): ResponseEntity<AuthResult> {
         if (authHeader == null) {
-            return ResponseEntity.status(401).build()
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED.value()).build()
         }
 
-        if (!authHeader.startsWith("Basic ")) {
-            return ResponseEntity.status(401).build()
+        val prefix = "Basic "
+        if (!authHeader.startsWith(prefix)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED.value()).build()
         }
 
         // User: user
         // Password: user
-        if (authHeader.substring(6) == "dXNlcjp1c2Vy") {
+        if (authHeader.substring(prefix.length) == "dXNlcjp1c2Vy") {
             val token =
                 jwtService.generateAuthToken(
                     "user",
@@ -79,6 +82,6 @@ class StubAuthPlugin(
             )
         }
 
-        return ResponseEntity.status(403).build()
+        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).build()
     }
 }

@@ -1,0 +1,8 @@
+config:
+  validation: true
+
+style:
+  MaxLineLength:
+    maxLineLength: 200
+  ForbiddenComment:
+    comments: [ "STOPSHIP:" ]

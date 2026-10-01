@@ -13,6 +13,7 @@ class UploadMetadataConverter : Converter<String, TusUploadMetadata> {
     private val keyRegex = Regex("^[\\x21-\\x7E]+$")
     private val decoder = Base64.getDecoder()
 
+    @Suppress("ThrowsCount", "SwallowedException")
     override fun convert(source: String): TusUploadMetadata {
         if (source.trim().isBlank()) return TusUploadMetadata(emptyMap())
 
@@ -44,7 +45,7 @@ class UploadMetadataConverter : Converter<String, TusUploadMetadata> {
                     try {
                         decoder.decode(encodedValue).toString(Charsets.UTF_8)
                     } catch (e: IllegalArgumentException) {
-                        throw InvalidUploadMetadataException("value for key '$key' is not valid Base64 or does not contain valid UTF-8")
+                        throw InvalidUploadMetadataException("value for key '$key' is not valid Base64 or does not contain valid UTF-8.")
                     }
                 }
 

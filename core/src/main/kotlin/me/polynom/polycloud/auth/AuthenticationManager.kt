@@ -16,6 +16,7 @@ class AuthenticationManager(
     /** Logger. */
     private val logger = LoggerFactory.getLogger(javaClass)
 
+    @Suppress("ReturnCount")
     fun authenticate(token: String): AuthVerificationResult? {
         val parts = token.split(" ")
         if (parts.size != 2) {

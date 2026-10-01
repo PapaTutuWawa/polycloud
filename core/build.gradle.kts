@@ -61,6 +61,17 @@ kotlin {
     }
 }
 
+// Spring's dependency-management plugin force-aligns every configuration (including
+// detekt's isolated analysis classpath) to the project's Kotlin stdlib version, but
+// detekt ships its own embedded compiler and refuses to run against a mismatched one.
+configurations.matching { it.name.startsWith("detekt") }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin") {
+            useVersion("2.4.10")
+        }
+    }
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }

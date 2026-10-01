@@ -1,4 +1,4 @@
-package me.polynom.polycloud.plugin
+package me.polynom.polycloud.plugin.app
 
 /**
  * Interface that each PolyCloud plugin should implement.

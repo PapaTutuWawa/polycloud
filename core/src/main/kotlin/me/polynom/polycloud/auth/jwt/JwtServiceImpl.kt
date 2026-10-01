@@ -89,6 +89,7 @@ class JwtServiceImpl(
                     ).asList(String::class.java),
         )
 
+    @Suppress("SwallowedException")
     override fun verifyAuthToken(token: String): AuthVerificationResult? {
         try {
             val decoded = authVerifier.verify(token)
@@ -98,6 +99,7 @@ class JwtServiceImpl(
         }
     }
 
+    @Suppress("SwallowedException")
     override fun verifyRefreshToken(token: String): AuthVerificationResult? {
         try {
             val decoded = refreshVerifier.verify(token)

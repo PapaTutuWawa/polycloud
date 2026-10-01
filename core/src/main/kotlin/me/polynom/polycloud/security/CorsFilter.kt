@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 
 /**
@@ -34,7 +35,7 @@ class CorsFilter : Filter {
 
         // If we have a CORS preflight request, then just terminate here and do not run anything else.
         if (request.method == "OPTIONS" && request.getHeader("Access-Control-Request-Method") != null) {
-            response.status = 200
+            response.status = HttpStatus.OK.value()
             return
         }
 

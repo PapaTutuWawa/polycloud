@@ -2,7 +2,7 @@ package me.polynom.polycloud.apps.files
 
 import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.files.config.StorageConfig
-import me.polynom.polycloud.plugin.PolycloudPlugin
+import me.polynom.polycloud.plugin.app.PolycloudPlugin
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
