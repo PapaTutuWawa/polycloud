@@ -1,10 +1,13 @@
 package me.polynom.polycloud.apps.calendar.api.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * DTO describing the API response of an entire calendar.
  */
+@Serializable
 data class CalendarDto(
     /** The id of the calendar. */
     val id: String,
@@ -18,5 +21,6 @@ data class CalendarDto(
     val color: String,
     /** Is the calendar public. */
     @field:JsonProperty("public")
+    @SerialName("public")
     val isPublic: Boolean,
 )

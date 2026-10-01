@@ -34,6 +34,7 @@ interface EventRepository : CrudRepository<Event, UUID> {
      *
      * @param calendarIds   The UUIDs of the calendars.
      * @param timeframe     The timeframe that has to overlap the event's duration.
+     * @param user          The user that is doing the request.
      */
     @NativeQuery(
         """

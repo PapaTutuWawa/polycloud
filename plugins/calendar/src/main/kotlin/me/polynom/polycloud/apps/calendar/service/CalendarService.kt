@@ -329,4 +329,33 @@ class CalendarService(
 
         return ResponseEntity.ok(eventMapper.eventToEventDto(entity))
     }
+
+    /**
+     * Updates a calendar.
+     *
+     * Note that this does not allow changing the owner.
+     *
+     * @param calendarId    The UUID of the calendar.
+     * @param request       The client request.
+     * @returns A {@link ResponseEntity} that contains the patched entity.
+     */
+    fun patchCalendar(calendarId: UUID, request: CalendarDto): ResponseEntity<CalendarDto> {
+        // Get the calendar.
+        val calendar = getCalendarByIdWithAccessCheck(calendarId)
+        if (calendar.first == null) {
+            return ResponseEntity.status(calendar.second).build()
+        }
+
+        val entity = Calendar(
+            id = calendarId,
+            name = request.name,
+            description = request.description,
+            owner = calendar.first!!.owner,
+            color = request.color,
+            public = request.isPublic,
+        )
+        calendarRepository.save(entity)
+
+        return ResponseEntity.ok(calendarMapper.calendarToCalendarDto(entity))
+    }
 }

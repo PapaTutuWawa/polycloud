@@ -58,6 +58,13 @@ class CalendarApiController(
         @PathVariable calendarId: UUID,
     ): ResponseEntity<Void> = service.deleteCalendar(calendarId)
 
+    @Operation(summary = "Patches a calendar.")
+    @PatchMapping("/calendar/{calendarId}")
+    fun patchCalendar(
+        @PathVariable calendarId: UUID,
+        @RequestBody calendar: CalendarDto,
+    ): ResponseEntity<CalendarDto> = service.patchCalendar(calendarId, calendar)
+
     @Operation(summary = "Creates an event.")
     @PostMapping("/calendar/{calendarId}/event")
     @ResponseStatus(HttpStatus.CREATED)
