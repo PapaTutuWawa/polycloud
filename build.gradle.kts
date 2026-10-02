@@ -32,3 +32,11 @@ tasks.register("lint") {
         dependsOn(it.tasks.named("detekt"))
     }
 }
+
+tasks.register("ci") {
+    description = "Runs the linter and formatting checks on all projects without modifying files"
+    subprojects.forEach {
+        dependsOn(it.tasks.named("spotlessCheck"))
+        dependsOn(it.tasks.named("detekt"))
+    }
+}
