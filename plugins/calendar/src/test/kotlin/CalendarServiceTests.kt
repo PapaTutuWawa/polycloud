@@ -12,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.whenever
-import org.springframework.http.HttpStatus
 import org.springframework.transaction.support.TransactionTemplate
 import java.util.Optional
 import java.util.UUID
