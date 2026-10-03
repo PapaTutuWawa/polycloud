@@ -55,5 +55,6 @@ class Event(
     var color: String? = null,
     /** Repetition config. */
     @Column(name = "repeat")
-    var repeat: String? = null,
+    @Embedded
+    var repeat: Repetition? = null,
 )
