@@ -32,4 +32,10 @@ data class EventDto(
     val calendar: UUID,
     /** The color of the calendar. */
     val color: String? = null,
+    /** Is the event a virtual event, i.e. it is not materialized in the database. */
+    val virtual: Boolean = false,
+    /** The ID of the event that this event belongs to, if it is a virtual ID. */
+    val virtualParentId: String? = null,
+    /** The index of the recurring event that identifies it in the sequence. */
+    val virtualId: Long? = null,
 )
