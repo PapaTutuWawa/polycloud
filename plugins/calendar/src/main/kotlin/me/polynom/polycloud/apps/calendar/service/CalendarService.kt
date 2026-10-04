@@ -34,16 +34,24 @@ import java.util.UUID
 class CalendarService(
     /** The calendar CRUD repository. */
     private val calendarRepository: CalendarRepository,
+
     /** The event CRUD repository. */
     private val eventRepository: EventRepository,
+
     /** The user context. */
     private val userContext: UserContext,
+
     /** The mapper for calendar entities. */
     private val calendarMapper: CalendarMapper,
+
     /** The mapper for event entities. */
     private val eventMapper: EventMapper,
+
     /** Transaction management. */
     private val transactionTemplate: TransactionTemplate,
+
+    /** Virtual event handler. */
+    private val virtualEventService: VirtualEventService,
 ) {
     /** Logging. */
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
@@ -201,15 +209,27 @@ class CalendarService(
         timezone: String,
     ): ResponseEntity<List<EventDto>> {
         val zone = ZoneId.of(timezone)
-        val events =
+        val viewStart = ZonedDateTime.ofInstant(Instant.ofEpochMilli(start), zone)
+        val viewEnd = ZonedDateTime.ofInstant(Instant.ofEpochMilli(end), zone)
+        val rawEvents =
             eventRepository
                 .findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(
                     request.calendars.map(UUID::fromString),
-                    Range.closed(
-                        ZonedDateTime.ofInstant(Instant.ofEpochMilli(start), zone),
-                        ZonedDateTime.ofInstant(Instant.ofEpochMilli(end), zone),
-                    ),
-                ).map(eventMapper::eventToEventDto)
+                    Range.closed(viewStart, viewEnd),
+                )
+        logger.debug("Found [{}] events in the database", rawEvents.size)
+        val events = rawEvents
+                .map ret@{
+                    if (it.repeat != null) {
+                        return@ret virtualEventService.processEvent(
+                            it,
+                            viewStart,
+                            viewEnd,
+                        )
+                    } else {
+                        return@ret listOf(eventMapper.eventToEventDto(it))
+                    }
+                }.flatten()
 
         return ResponseEntity.ok(events)
     }

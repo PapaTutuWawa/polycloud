@@ -37,6 +37,62 @@ class DailyRecurrenceTests {
     }
 
     @Test
+    fun testDailyRecurrenceUntilViewBeforeEventStart() {
+        val recurrence =
+            DailyRecurrence(
+                ZonedDateTime.of(2026, 9, 30, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+                ZonedDateTime.of(2026, 9, 28, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+                ZonedDateTime.of(2026, 10, 4, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+                ZonedDateTime.of(2026, 10, 17, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+                null,
+            )
+
+        val events = mutableListOf<ZonedDateTime>()
+        while (recurrence.hasNext()) {
+            val (_, date) = recurrence.next()
+            events.addLast(date)
+        }
+
+        assertThat(events).hasSize(5)
+        assertThat(events).contains(
+            ZonedDateTime.of(2026, 9, 30, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+            ZonedDateTime.of(2026, 10, 1, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+            ZonedDateTime.of(2026, 10, 2, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+            ZonedDateTime.of(2026, 10, 3, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+            ZonedDateTime.of(2026, 10, 4, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+        )
+    }
+
+
+    @Test
+    fun testDailyRecurrenceUntilViewBeforeEventStartPast() {
+        val recurrence =
+            DailyRecurrence(
+                ZonedDateTime.of(2026, 9, 30, 4, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+                ZonedDateTime.of(2026, 10, 5, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+                ZonedDateTime.of(2026, 10, 11, 23, 59, 59, 999, ZoneId.of("Europe/Berlin")),
+                ZonedDateTime.of(2026, 10, 10, 23, 59, 59, 999, ZoneId.of("Europe/Berlin")),
+                null,
+            )
+
+        val events = mutableListOf<ZonedDateTime>()
+        while (recurrence.hasNext()) {
+            val (_, date) = recurrence.next()
+            events.addLast(date)
+        }
+
+        assertThat(events).hasSize(6)
+        assertThat(events).contains(
+            ZonedDateTime.of(2026, 10, 5, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+            ZonedDateTime.of(2026, 10, 6, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+            ZonedDateTime.of(2026, 10, 7, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+            ZonedDateTime.of(2026, 10, 8, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+            ZonedDateTime.of(2026, 10, 9, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+            ZonedDateTime.of(2026, 10, 10, 0, 0, 0, 0, ZoneId.of("Europe/Berlin")),
+        )
+    }
+
+    @Test
     fun testDailyRecurrenceUntilOutsideWindow() {
         val recurrence =
             DailyRecurrence(

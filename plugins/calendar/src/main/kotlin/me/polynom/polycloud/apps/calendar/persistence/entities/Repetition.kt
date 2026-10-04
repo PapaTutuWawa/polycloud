@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.hypersistence.utils.hibernate.type.json.JsonType
 import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Type
 import java.io.Serializable
@@ -60,16 +63,7 @@ abstract class RepetitionConfig : Serializable {
 class MonthlyRepetitionConfig(
     /** Should the repetition happen every month on the same day of the month? */
     var sameDay: Boolean,
-    /**
-     * If sameDay is false, this value must indicate that the n-th weekday of the month
-     * the event should occur.
-     */
-    var weekdayOfTheMonth: Int?,
 ) : RepetitionConfig() {
-    init {
-        assert((weekdayOfTheMonth == null).xor(sameDay))
-    }
-
     companion object {
         private const val DISCRIMIATOR = "repeat.config.monthly"
     }
@@ -80,13 +74,15 @@ class MonthlyRepetitionConfig(
 /**
  * Extra config for weekly event repeats.
  */
+@OptIn(ExperimentalStdlibApi::class)
 @Suppress("MagicNumber")
 class WeeklyRepetitionConfig(
     /** List of weekdays that this event shoud repeat (0 - 6). */
     var weekdays: List<Int>,
 ) : RepetitionConfig() {
     init {
-        assert(weekdays.all { it in 0..6 })
+        assert(weekdays.all { it in 1..7 })
+        assert(weekdays.allDistinct())
     }
 
     companion object {
@@ -99,23 +95,27 @@ class WeeklyRepetitionConfig(
 /**
  * A repetition of an event.
  */
+@Embeddable
 data class Repetition(
     /** Repeat mode. */
     @Column("repeat_mode")
     @NotNull
+    @Enumerated(EnumType.STRING)
     var repeatMode: RepeatMode? = null,
+
     /** Repeat n times. */
     @Column("repeat_times")
     var repeatTimes: Int? = null,
+
     /** Repeat until this date. */
-    @Column("end_date")
+    @Column("repeat_until")
     var repeatUntil: ZonedDateTime? = null,
-    /** Datetime the event should start on the first day. */
-    @Column("repeat_start")
-    var repeatEventStart: ZonedDateTime? = null,
-    /** Datetime the event should end on the first day. */
-    @Column("repeat_end")
-    var repeatEventEnd: ZonedDateTime? = null,
+
+    /** Rough query for until when the repeat is valid (computed either from repeatUntil or repeatTimes) */
+    @Column("repeat_valid_until")
+    @NotNull
+    var repeatTimeframeEnd: ZonedDateTime? = null,
+
     /** Extra config for the repetition. */
     @Type(JsonType::class)
     @Column("repeat_config")

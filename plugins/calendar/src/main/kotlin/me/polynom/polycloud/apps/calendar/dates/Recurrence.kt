@@ -11,12 +11,16 @@ import java.time.temporal.ChronoUnit
 abstract class BaseRecurrence(
     /** The date to start on. This is implicitly occurrence 0. */
     protected val startDate: ZonedDateTime,
+
     /** The start of the view. */
     protected val viewStartDate: ZonedDateTime,
+
     /** The end of the view. */
     protected val viewEndDate: ZonedDateTime,
+
     /** The end date of the event. */
     protected val endDate: ZonedDateTime?,
+
     /** The number of occurrences this event should have. */
     protected val occurrences: Int?,
 ) {
@@ -68,21 +72,31 @@ abstract class BaseRecurrence(
 class DailyRecurrence(
     /** The date to start on. This is implicitly occurrence 0. */
     startDate: ZonedDateTime,
+
     /** The start of the view. */
     viewStartDate: ZonedDateTime,
+
     /** The end of the view. */
     viewEndDate: ZonedDateTime,
+
     /** The end date of the event. */
     endDate: ZonedDateTime?,
+
     /** The number of occurrences this event should have. */
     occurrences: Int?,
 ) : BaseRecurrence(startDate, viewStartDate, viewEndDate, endDate, occurrences) {
     init {
         assert((endDate != null).xor(occurrences != null))
-        counter = ChronoUnit.DAYS.between(
-            startDate.truncatedTo(ChronoUnit.DAYS),
-            viewStartDate.truncatedTo(ChronoUnit.DAYS),
-        ) - 1
+
+        if (viewStartDate.isAfter(startDate)) {
+            counter = ChronoUnit.DAYS.between(
+                startDate.truncatedTo(ChronoUnit.DAYS),
+                viewStartDate.truncatedTo(ChronoUnit.DAYS),
+            ) - 1
+        } else {
+            // Use -1 to trick the code into emitting the start date as well.
+            counter = -1
+        }
     }
 
     override fun nextOccurrence(n: Long): ZonedDateTime =
@@ -97,14 +111,19 @@ class DailyRecurrence(
 class WeeklyRecurrence(
     /** The date to start on. This is implicitly occurrence 0. */
     startDate: ZonedDateTime,
+
     /** The start of the view. */
     viewStartDate: ZonedDateTime,
+
     /** The end of the view. */
     viewEndDate: ZonedDateTime,
+
     /** The end date of the event. */
     endDate: ZonedDateTime?,
+
     /** The number of occurrences this event should have. */
     occurrences: Int?,
+
     /** Weekdays that the event should occur on. */
     private val weekdays: List<DayOfWeek>,
 ) : BaseRecurrence(startDate, viewStartDate, viewEndDate, endDate, occurrences) {
@@ -185,14 +204,19 @@ class WeeklyRecurrence(
 class MonthlyRecurrence(
     /** The date to start on. This is implicitly occurrence 0. */
     startDate: ZonedDateTime,
+
     /** The start of the view. */
     viewStartDate: ZonedDateTime,
+
     /** The end of the view. */
     viewEndDate: ZonedDateTime,
+
     /** The end date of the event. */
     endDate: ZonedDateTime?,
+
     /** The number of occurrences this event should have. */
     occurrences: Int?,
+
     /** The repeat mode. */
     private val recurrenceMode: MonthlyRecurrenceMode,
 ) : BaseRecurrence(startDate, viewStartDate, viewEndDate, endDate, occurrences) {
@@ -291,12 +315,16 @@ class MonthlyRecurrence(
 class YearlyRecurrence(
     /** The date to start on. This is implicitly occurrence 0. */
     startDate: ZonedDateTime,
+
     /** The start of the view. */
     viewStartDate: ZonedDateTime,
+
     /** The end of the view. */
     viewEndDate: ZonedDateTime,
+
     /** The end date of the event. */
     endDate: ZonedDateTime?,
+
     /** The number of occurrences this event should have. */
     occurrences: Int?,
 ) : BaseRecurrence(startDate, viewStartDate, viewEndDate, endDate, occurrences) {

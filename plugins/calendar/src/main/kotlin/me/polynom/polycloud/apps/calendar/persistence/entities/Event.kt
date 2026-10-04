@@ -18,6 +18,12 @@ import java.util.UUID
 
 /**
  * Database model for a single event in a calendar.
+ *
+ * Modeling information: The way an event is supposed to be represented is that
+ * the timeframe itself describes the occurrence of the event itself, i.e. if an
+ * appointment starts at 11:30 and ends at 12:00, then that's the timeframe. If that
+ * appointment repeats daily, then the timeframe is still the same but the information
+ * about the repetition is in the repeat config.
  */
 @Entity
 @Table(name = "event")
@@ -27,32 +33,40 @@ class Event(
     @Id
     @GeneratedValue(GenerationType.UUID)
     var id: UUID? = null,
+
     /** The calendar this event belongs to. */
     var calendar: UUID? = null,
+
     /** Title of the event. */
     @NotNull
     var title: String? = null,
+
     /** The description of the event. */
     @Nullable
     var description: String? = null,
+
     /** Timerange of the event. */
     @NotNull
     @Column(name = "timeframe")
     @Type(PostgreSQLRangeType::class)
     var timeframe: Range<ZonedDateTime>? = null,
+
     /** Is the event an all-day event? */
     @NotNull
     @Column(name = "all_day")
     var allDay: Boolean? = null,
+
     /** The place where the event occurs. */
     @Nullable
     var place: String? = null,
+
     /**
      * The color of the parent calendar. Defined by the calendar entity itself
      * and the result of a join, so transient.
      */
     @Column(name = "color", table = "calendar")
     var color: String? = null,
+
     /** Repetition config. */
     @Column(name = "repeat")
     @Embedded
