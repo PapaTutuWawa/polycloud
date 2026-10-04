@@ -1,0 +1,39 @@
+name: Update flake.lock
+
+on:
+  schedule:
+    # Every Monday at 04:00 UTC
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    name: Update flake inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update flake.lock and open a pull request
+        uses: DeterminateSystems/update-flake-lock@v29
+        with:
+          pr-title: "nix: update flake.lock"
+          commit-msg: "nix: update flake.lock"
+          branch: "nix/update-flake-lock"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Runs after the PR is opened, so a broken update shows up as a failed run on it
+      - name: Check project works
+        run: |
+          nix flake check
