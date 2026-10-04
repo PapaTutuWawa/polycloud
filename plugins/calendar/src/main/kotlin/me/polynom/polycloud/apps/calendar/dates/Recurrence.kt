@@ -62,6 +62,8 @@ abstract class BaseRecurrence(
      */
     open fun next(): Pair<Long, ZonedDateTime> {
         val nextOccurrence = nextOccurrence(++counter)
+            .withHour(0)
+            .withMinute(0)
         return Pair(counter, nextOccurrence)
     }
 }
@@ -101,7 +103,6 @@ class DailyRecurrence(
 
     override fun nextOccurrence(n: Long): ZonedDateTime =
         startDate
-            .truncatedTo(ChronoUnit.DAYS)
             .plusDays(n)
 }
 
@@ -179,7 +180,6 @@ class WeeklyRecurrence(
                 ?.toLong()
         if (nextWeekday != null) {
             return lastOccurrence
-                .truncatedTo(ChronoUnit.DAYS)
                 .plusDays(nextWeekday - startDate.dayOfWeek.value - 1)
         }
 

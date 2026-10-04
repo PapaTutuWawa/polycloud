@@ -2,15 +2,23 @@ package me.polynom.polycloud.apps.calendar.persistence.entities
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.core.JsonProcessingException
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType
 import io.hypersistence.utils.hibernate.type.json.JsonType
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.validation.constraints.NotNull
+import org.hibernate.annotations.JdbcType
+import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.annotations.Type
+import org.hibernate.type.SqlTypes
+import org.hibernate.type.descriptor.WrapperOptions
+import org.hibernate.usertype.UserType
+import tools.jackson.databind.ObjectMapper
 import java.io.Serializable
-import java.time.Month
+import java.sql.ResultSet
 import java.time.ZonedDateTime
 
 /**
@@ -48,13 +56,32 @@ enum class RepeatMode {
         value = WeeklyRepetitionConfig::class,
     ),
 )
-abstract class RepetitionConfig : Serializable {
-    companion object {
-        private const val serialVersionUID = 1L
+open class RepetitionConfig : UserType<RepetitionConfig> {
+    override fun getSqlType(): Int {
+        return SqlTypes.JSON
     }
 
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
-    abstract fun getType(): String
+    override fun returnedClass(): Class<RepetitionConfig> {
+        return RepetitionConfig::class.java
+    }
+
+    override fun deepCopy(value: RepetitionConfig?): RepetitionConfig? {
+        TODO("Not yet implemented")
+    }
+
+    override fun isMutable(): Boolean {
+        return false
+    }
+
+    override fun nullSafeGet(rs: ResultSet, position: Int, options: WrapperOptions): RepetitionConfig? {
+        val content = rs.getString(position) ?: return null
+
+        return try {
+            ObjectMapper().readerFor(this::class.java).readValue(content)
+        } catch (e: JsonProcessingException) {
+            null
+        }
+    }
 }
 
 /**
@@ -63,33 +90,21 @@ abstract class RepetitionConfig : Serializable {
 class MonthlyRepetitionConfig(
     /** Should the repetition happen every month on the same day of the month? */
     var sameDay: Boolean,
-) : RepetitionConfig() {
-    companion object {
-        private const val DISCRIMIATOR = "repeat.config.monthly"
-    }
-
-    override fun getType(): String = DISCRIMIATOR
-}
+) : RepetitionConfig() {}
 
 /**
  * Extra config for weekly event repeats.
  */
 @OptIn(ExperimentalStdlibApi::class)
 @Suppress("MagicNumber")
-class WeeklyRepetitionConfig(
-    /** List of weekdays that this event shoud repeat (0 - 6). */
+data class WeeklyRepetitionConfig(
+    /** List of weekdays that this event should repeat (0 - 6). */
     var weekdays: List<Int>,
 ) : RepetitionConfig() {
     init {
         assert(weekdays.all { it in 1..7 })
         assert(weekdays.allDistinct())
     }
-
-    companion object {
-        private const val DISCRIMIATOR = "repeat.config.weekly"
-    }
-
-    override fun getType(): String = DISCRIMIATOR
 }
 
 /**
@@ -117,7 +132,7 @@ data class Repetition(
     var repeatTimeframeEnd: ZonedDateTime? = null,
 
     /** Extra config for the repetition. */
-    @Type(JsonType::class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column("repeat_config")
     var repeatConfig: RepetitionConfig? = null,
 )
