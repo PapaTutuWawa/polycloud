@@ -30,7 +30,7 @@ class LocalStorage(
         }
 
     @Suppress("ReturnCount")
-    override fun listFiles(
+    override fun list(
         user: String,
         path: StoragePath,
     ): List<EntryMeta> {
@@ -55,7 +55,7 @@ class LocalStorage(
         }
     }
 
-    override fun getFile(
+    override fun read(
         user: String,
         path: StoragePath,
     ): Resource {
@@ -88,13 +88,13 @@ class LocalStorage(
         }
     }
 
-    override fun stageUpload(upload: Upload) {
+    override fun prepareUpload(upload: Upload) {
         val path = root.resolve("uploads", upload.id!!.toString())
         Files.createDirectories(path.parent)
         Files.createFile(path)
     }
 
-    override fun patchUpload(
+    override fun continueUpload(
         upload: Upload,
         stream: InputStream,
     ): Long {
@@ -111,14 +111,13 @@ class LocalStorage(
     }
 
     override fun finaliseUpload(
-        user: String,
-        path: StoragePath,
         upload: Upload,
     ) {
+        val path = vfsToRelative(StoragePath(upload.path))
         if (!path.file) {
             throw IllegalArgumentException("Path references folder")
         }
-        val targetPath = resolvePath(user, path)
+        val targetPath = resolvePath(upload.user, path)
         val sourcePath = root.resolve("uploads", upload.id!!.toString())
         Files.createDirectories(targetPath.parent)
         Files.move(sourcePath, targetPath)

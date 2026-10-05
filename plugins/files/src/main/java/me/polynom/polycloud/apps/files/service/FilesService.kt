@@ -7,8 +7,6 @@ import me.polynom.polycloud.apps.files.storage.EntryMeta
 import me.polynom.polycloud.apps.files.storage.StoragePath
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
-import org.springframework.web.servlet.resource.NoResourceFoundException
-import java.io.InputStream
 import java.util.UUID
 
 @Component
@@ -33,7 +31,7 @@ class FilesService(
 
         // If path resolves to a real storage backend, passthrough request
         val (storage, relPath) = storageService.resolveMount(path)
-        val files = storage?.listFiles(user, relPath) ?: emptyList()
+        val files = storage?.list(user, relPath) ?: emptyList()
 
         // Return both
         val ret = mounts + files
@@ -51,14 +49,10 @@ class FilesService(
         val (storage, relPath) = storageService.resolveMount(path)
         // FIXME: user facing error
         storage ?: throw IllegalArgumentException("MOOP")
-        return storage.getFile(user, relPath)
+        return storage.read(user, relPath)
     }
 
-    fun putFile(
-        user: String,
-        path: StoragePath,
-        slot: UUID,
-    ) {
+    fun putFile(slot: UUID) {
         // FIXME: exception
         val upload = uploadRepository.findById(slot).orElseThrow { PathEmptyException("", StoragePath("")) }
         if (!upload.done()) {
@@ -66,12 +60,11 @@ class FilesService(
             throw PathEmptyException("", StoragePath(""))
         }
 
-        val (storage, relPath) = storageService.resolveMount(StoragePath(upload.path))
+        val (storage, _) = storageService.resolveMount(StoragePath(upload.path))
         // FIXME: user facing error
         storage ?: throw IllegalArgumentException("MOOP")
 
-        // TODO: do we allow last-minute path deviations? Currently we do not.
-        storage.finaliseUpload(upload.user, relPath, upload)
+        storage.finaliseUpload(upload)
         uploadRepository.delete(upload)
     }
 

@@ -48,10 +48,8 @@ class FilesApiController(
 
     @PutMapping("/users/{user}/{*path}")
     fun putFile(
-        @PathVariable("user") user: String,
-        @PathVariable("path") path: StoragePath,
         @RequestBody slot: UploadSlotDto,
-    ) = filesService.putFile(user, path, UUID.fromString(slot.slot))
+    ) = filesService.putFile(UUID.fromString(slot.slot))
 
     @GetMapping("/download/{user}/{*path}")
     fun download(
