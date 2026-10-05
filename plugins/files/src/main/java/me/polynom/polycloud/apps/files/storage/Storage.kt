@@ -36,4 +36,6 @@ interface Storage {
     )
 
     fun deleteUpload(upload: Upload)
+
+    val mount: StoragePath
 }

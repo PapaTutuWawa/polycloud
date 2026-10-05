@@ -19,4 +19,10 @@ data class LocalStorageConfig
          * Whether file access is separated between users or a common file pool is accessed (use with caution!)
          */
         val shared: Boolean = false,
-    )
+    ) {
+        init {
+            if (mount.file) {
+                throw IllegalArgumentException("Mount $mount has to end with `/`")
+            }
+        }
+    }

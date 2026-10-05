@@ -15,6 +15,7 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
 class LocalStorage(
+    override val mount: StoragePath,
     val root: Path,
     val shared: Boolean,
 ) : Storage {

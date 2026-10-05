@@ -1,6 +1,6 @@
 package me.polynom.polycloud.apps.files.storage
 
-class StoragePath(
+data class StoragePath(
     val components: List<String>,
     val file: Boolean,
 ) {
@@ -26,6 +26,8 @@ class StoragePath(
         } else {
             components.size
         }
+
+    fun folder() = this.split(this.folderDepth()).first
 
     override fun toString(): String {
         val postfix =
