@@ -1,11 +1,8 @@
 package me.polynom.polycloud.apps.calendar.api.dto
 
-import kotlinx.serialization.Serializable
-
 /**
  * DTO describing a calendar creation request.
  */
-@Serializable
 data class CalendarCreationRequestDto(
     /** Name of the calendar. */
     val name: String,
