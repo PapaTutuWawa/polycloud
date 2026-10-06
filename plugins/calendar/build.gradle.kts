@@ -23,7 +23,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-autoconfigure:4.1.1")
 
     // Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    implementation("tools.jackson.module:jackson-module-kotlin:3.2.+")
 
     // OpenAPI
     compileOnly("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")

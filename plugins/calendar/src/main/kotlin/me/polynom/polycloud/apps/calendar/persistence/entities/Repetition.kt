@@ -2,23 +2,13 @@ package me.polynom.polycloud.apps.calendar.persistence.entities
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.core.JsonProcessingException
-import io.hypersistence.utils.hibernate.type.json.JsonBinaryType
-import io.hypersistence.utils.hibernate.type.json.JsonType
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.validation.constraints.NotNull
-import org.hibernate.annotations.JdbcType
-import org.hibernate.annotations.JdbcTypeCode
+import me.polynom.polycloud.apps.calendar.persistence.types.RepetitionUserType
 import org.hibernate.annotations.Type
-import org.hibernate.type.SqlTypes
-import org.hibernate.type.descriptor.WrapperOptions
-import org.hibernate.usertype.UserType
-import tools.jackson.databind.ObjectMapper
-import java.io.Serializable
-import java.sql.ResultSet
 import java.time.ZonedDateTime
 
 /**
@@ -56,33 +46,7 @@ enum class RepeatMode {
         value = WeeklyRepetitionConfig::class,
     ),
 )
-open class RepetitionConfig : UserType<RepetitionConfig> {
-    override fun getSqlType(): Int {
-        return SqlTypes.JSON
-    }
-
-    override fun returnedClass(): Class<RepetitionConfig> {
-        return RepetitionConfig::class.java
-    }
-
-    override fun deepCopy(value: RepetitionConfig?): RepetitionConfig? {
-        TODO("Not yet implemented")
-    }
-
-    override fun isMutable(): Boolean {
-        return false
-    }
-
-    override fun nullSafeGet(rs: ResultSet, position: Int, options: WrapperOptions): RepetitionConfig? {
-        val content = rs.getString(position) ?: return null
-
-        return try {
-            ObjectMapper().readerFor(this::class.java).readValue(content)
-        } catch (e: JsonProcessingException) {
-            null
-        }
-    }
-}
+open class RepetitionConfig { }
 
 /**
  * Extra config for monthly event repeats.
@@ -132,7 +96,7 @@ data class Repetition(
     var repeatTimeframeEnd: ZonedDateTime? = null,
 
     /** Extra config for the repetition. */
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(RepetitionUserType::class)
     @Column("repeat_config")
     var repeatConfig: RepetitionConfig? = null,
 )
