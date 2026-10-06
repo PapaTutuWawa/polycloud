@@ -2,6 +2,7 @@ package me.polynom.polycloud.apps.calendar.persistence.entities
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import jakarta.annotation.Nullable
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import jakarta.persistence.EnumType
@@ -92,7 +93,7 @@ data class Repetition(
 
     /** Rough query for until when the repeat is valid (computed either from repeatUntil or repeatTimes) */
     @Column("repeat_valid_until")
-    @NotNull
+    @Nullable
     var repeatTimeframeEnd: ZonedDateTime? = null,
 
     /** Extra config for the repetition. */

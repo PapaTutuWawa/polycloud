@@ -185,8 +185,11 @@ class CalendarService(
 
             return ResponseEntity.ok(
                 eventRepository
-                    .findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(listOf(calendarId), range)
-                    .map(eventMapper::eventToEventDto),
+                    .findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(
+                        userContext.getUser()?.username,
+                        listOf(calendarId),
+                        range
+                    ).map(eventMapper::eventToEventDto),
             )
         }
 
@@ -214,6 +217,7 @@ class CalendarService(
         val rawEvents =
             eventRepository
                 .findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(
+                    userContext.getUser()?.username,
                     request.calendars.map(UUID::fromString),
                     Range.closed(viewStart, viewEnd),
                 )
