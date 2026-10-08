@@ -12,13 +12,6 @@ import java.util.UUID
  */
 interface EventRepository : CrudRepository<Event, UUID> {
     /**
-     * Finds all events inside a calendar.
-     *
-     * @param calendar  The UUID of the calendar.
-     */
-    fun findAllByCalendar(calendar: UUID): List<Event>
-
-    /**
      * Deletes an event based on the event ID and the calendar.
      *
      * @param calendar  The calendar's UUID.

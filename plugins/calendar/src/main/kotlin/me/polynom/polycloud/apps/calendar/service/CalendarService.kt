@@ -147,56 +147,6 @@ class CalendarService(
     }
 
     /**
-     * Gets all events associated with a calendar.
-     *
-     * @param calendarId    The ID of the calendar.
-     * @return A {@link ResponseEntity} that may or may not contain the event list.
-     */
-    @Suppress("ReturnCount")
-    fun getEvents(
-        calendarId: UUID,
-        start: Long?,
-        end: Long?,
-        timezone: String?,
-    ): ResponseEntity<List<EventDto>> {
-        if (start == null && end == null && timezone == null) {
-            // Query all events
-            val calendar = getCalendarByIdWithAccessCheck(calendarId)
-            if (calendar.first == null) {
-                return ResponseEntity.status(calendar.second).build()
-            }
-
-            return ResponseEntity.ok(
-                eventRepository
-                    .findAllByCalendar(calendarId)
-                    .map(eventMapper::eventToEventDto),
-            )
-        } else if (start != null && end != null && timezone != null) {
-            // Query only events between start and end
-            val calendar = getCalendarByIdWithAccessCheck(calendarId)
-            if (calendar.first == null) {
-                return ResponseEntity.status(calendar.second).build()
-            }
-
-            val zone = ZoneId.of(timezone)
-            val startZdt = ZonedDateTime.ofInstant(Instant.ofEpochSecond(start), zone)
-            val endZdt = ZonedDateTime.ofInstant(Instant.ofEpochSecond(end), zone)
-            val range = Range.closed(startZdt, endZdt)
-
-            return ResponseEntity.ok(
-                eventRepository
-                    .findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(
-                        userContext.getUser()?.username,
-                        listOf(calendarId),
-                        range
-                    ).map(eventMapper::eventToEventDto),
-            )
-        }
-
-        return ResponseEntity.badRequest().build()
-    }
-
-    /**
      * Gets all events associated with a list of calendars.
      *
      * @param request   The request by the client.
