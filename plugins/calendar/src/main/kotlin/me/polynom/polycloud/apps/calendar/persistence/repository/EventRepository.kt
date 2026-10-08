@@ -40,6 +40,7 @@ interface EventRepository : CrudRepository<Event, UUID> {
         WHERE
             (calendar.public = TRUE OR calendar.owner = ?1) AND
             event.calendar IN ?2 AND
+            event.parent_id IS NULL AND
             (
                 event.timeframe && ?3 OR
                 event.repeat_valid_until IS NOT NULL AND
@@ -53,4 +54,23 @@ interface EventRepository : CrudRepository<Event, UUID> {
         calendarIds: List<UUID>,
         timeframe: Range<ZonedDateTime>,
     ): List<Event>
+
+    /**
+     * Find events that have a given one as a parent.
+     *
+     * @param parentIds List of event IDs to query parents of.
+     */
+    @NativeQuery(
+        """
+        SELECT
+            event.*,
+            calendar.color
+        FROM
+            event
+        JOIN calendar ON event.calendar = calendar.id
+        WHERE
+            event.parent_id IN ?1
+        """,
+    )
+    fun findAllByParentIds(parentIds: List<UUID>): List<Event>
 }

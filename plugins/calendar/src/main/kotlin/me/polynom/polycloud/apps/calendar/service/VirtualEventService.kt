@@ -11,11 +11,13 @@ import me.polynom.polycloud.apps.calendar.persistence.entities.Event
 import me.polynom.polycloud.apps.calendar.persistence.entities.MonthlyRepetitionConfig
 import me.polynom.polycloud.apps.calendar.persistence.entities.RepeatMode
 import me.polynom.polycloud.apps.calendar.persistence.entities.WeeklyRepetitionConfig
+import me.polynom.polycloud.apps.calendar.persistence.repository.EventRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
+import java.util.UUID
 
 /**
  * Service that processes virtual events.
@@ -26,7 +28,12 @@ class VirtualEventService {
     /** Logging. */
     private val logger: Logger = LoggerFactory.getLogger(this.javaClass)
 
-    fun processEvent(event: Event, viewStart: ZonedDateTime, viewEnd: ZonedDateTime): List<EventDto> {
+    fun processEvent(
+        event: Event,
+        viewStart: ZonedDateTime,
+        viewEnd: ZonedDateTime,
+        overrides: Map<UUID, List<Event>>,
+    ): List<EventDto> {
         val recurrence = when (event.repeat!!.repeatMode!!) {
             RepeatMode.YEARLY -> YearlyRecurrence(
                 event.timeframe!!.lower(),
@@ -79,6 +86,7 @@ class VirtualEventService {
 
         val events = mutableListOf<EventDto>()
         var count = 0
+        val hasOverride = overrides.containsKey(event.id!!)
         while (recurrence.hasNext()) {
             val (idx, recurringEvent) = recurrence.next()
             val start = recurringEvent
@@ -87,6 +95,32 @@ class VirtualEventService {
             val end = recurringEvent
                 .withHour(event.timeframe!!.upper().hour)
                 .withMinute(event.timeframe!!.upper().minute)
+
+            // Check if there is an override.
+            if (hasOverride) {
+                val override = overrides[event.id]?.firstOrNull { it.parent?.parentCounter == idx }
+                if (override != null) {
+                    events.addLast(
+                        EventDto(
+                            "${event.id}-${idx}",
+                            override.title!!,
+                            override.description,
+                            override.timeframe!!.lower(),
+                            override.timeframe!!.upper(),
+                            override.allDay!!,
+                            override.place,
+                            override.calendar!!,
+                            override.color,
+                            true,
+                            event.id.toString(),
+                            idx,
+                            VirtualEventType.RECURRING,
+                        ),
+                    )
+                    continue
+                }
+            }
+
             events.addLast(
                 EventDto(
                     "${event.id}-${idx}",

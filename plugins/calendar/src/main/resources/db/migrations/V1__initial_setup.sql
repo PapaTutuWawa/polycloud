@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS event (
     repeat_until        TIMESTAMP WITH TIME ZONE,
     repeat_valid_until  TIMESTAMP WITH TIME ZONE,
     repeat_config       JSONB,
+    parent_id           UUID REFERENCES event (id),
+    parent_counter      INTEGER,
     CONSTRAINT fk_calendar
         FOREIGN KEY (calendar)
         REFERENCES calendar (id)

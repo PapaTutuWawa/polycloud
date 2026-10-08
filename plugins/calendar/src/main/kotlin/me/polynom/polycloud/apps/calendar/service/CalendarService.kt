@@ -171,7 +171,16 @@ class CalendarService(
                     request.calendars.map(UUID::fromString),
                     Range.closed(viewStart, viewEnd),
                 )
-        logger.debug("Found [{}] events in the database", rawEvents.size)
+
+        // Find event overrides.
+        val recurringEvents = rawEvents
+            .filter { it.repeat != null }
+            .map { it.id!! }
+        val eventOverrides = eventRepository
+            .findAllByParentIds(recurringEvents)
+            .groupBy { it.parent!!.parentId!! }
+
+        logger.debug("Found [{}] events and [{}] overrides in the database", rawEvents.size, eventOverrides.size)
         val events = rawEvents
                 .map ret@{
                     if (it.repeat != null) {
@@ -179,6 +188,7 @@ class CalendarService(
                             it,
                             viewStart,
                             viewEnd,
+                            eventOverrides,
                         )
                     } else {
                         return@ret listOf(eventMapper.eventToEventDto(it))
