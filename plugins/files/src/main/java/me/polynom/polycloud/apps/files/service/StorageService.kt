@@ -13,20 +13,16 @@ import kotlin.math.min
 class StorageService(
     storageConfig: StorageConfig,
 ) {
-    val mapper: Map<String, Storage> = initMapping(storageConfig)
-    val maxDepth: Int = mapper.keys.maxOfOrNull { it.split("/").size - 2 } ?: 0
+    val mapper: Map<StoragePath, Storage> = initMapping(storageConfig)
+    val maxDepth: Int = mapper.keys.maxOfOrNull { it.components.size } ?: 0
 
-    private fun initMapping(storageConfig: StorageConfig): Map<String, Storage> {
-        val mapper = mutableMapOf<String, Storage>()
+    private fun initMapping(storageConfig: StorageConfig): Map<StoragePath, Storage> {
+        val mapper = mutableMapOf<StoragePath, Storage>()
         storageConfig.local.forEach { local ->
-            if (local.mount.file) {
-                throw IllegalArgumentException("Mount ${local.mount} has to end with `/`")
-            }
+            val storage = LocalStorage(local.mount, local.path.normalize(), local.shared)
 
-            val mount = local.mount.toString()
-            val storage = LocalStorage(local.path.normalize(), local.shared)
-            if (mapper.putIfAbsent(mount, storage) != null) {
-                throw IllegalArgumentException("Two storage backends try to mount at $mount")
+            if (mapper.putIfAbsent(local.mount, storage) != null) {
+                throw IllegalArgumentException("Two storage backends try to mount at ${local.mount}")
             }
         }
 
@@ -38,7 +34,7 @@ class StorageService(
         while (d >= 0) {
             val (mount, relPath) = path.split(d)
 
-            mapper[mount.toString()]?.let {
+            mapper[mount]?.let {
                 return Pair(it, relPath)
             }
 
@@ -50,8 +46,12 @@ class StorageService(
 
     fun listMounts(path: StoragePath): List<StoragePath> =
         mapper.keys
-            .filter { it.startsWith(path.toString()) }
-            .map { StoragePath(it) }
+            // Only mounts that are one level deeper may match
             .filter { it.folderDepth() == path.folderDepth() + 1 }
-            .toCollection(ArrayList())
+            .map { it.split(it.folderDepth() - 1) }
+            // Match mounts that are in the path's directory
+            .filter { it.first == path.folder() }
+            // Get that mounts name
+            .map { it.second }
+            .toList()
 }

@@ -8,7 +8,6 @@ import me.polynom.polycloud.apps.files.persistence.entities.Upload
 import me.polynom.polycloud.apps.files.persistence.repository.UploadRepository
 import me.polynom.polycloud.apps.files.storage.StoragePath
 import org.springframework.stereotype.Service
-import org.springframework.web.servlet.resource.NoResourceFoundException
 import java.io.InputStream
 import java.net.URI
 import java.util.UUID
@@ -42,7 +41,7 @@ class UploadService(
             )
         uploadRepository.save(entity)
 
-        storage.stageUpload(entity)
+        storage.prepareUpload(entity)
         return URI("/api/apps/files/upload/${entity.id!!}")
     }
 
@@ -80,7 +79,7 @@ class UploadService(
         // FIXME: exception
         storage ?: throw PathEmptyException(upload.user, StoragePath(upload.path))
 
-        val transferred = storage.patchUpload(upload, body)
+        val transferred = storage.continueUpload(upload, body)
         upload.offset += transferred
         uploadRepository.save(upload)
 

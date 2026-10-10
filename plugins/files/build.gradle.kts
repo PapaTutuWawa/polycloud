@@ -35,7 +35,12 @@ dependencies {
 
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+
+    // Testing
     testImplementation(kotlin("test"))
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
+    testImplementation("org.mockito:mockito-core:5.23.0")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:4.1.1")
 }
 
 repositories {
@@ -46,4 +51,8 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict")
     }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
