@@ -62,15 +62,18 @@ interface Storage {
      * @param upload metadata object.
      * @throws StorageQuotaException if storage quota is reached
      * @throws StorageReadOnlyException if backend is read-only
+     * @throws StorageWrongTypeException if path is folder path.
      * @throws java.io.IOError on io errors
+     * @throws IllegalStateException if upload is already prepared.
      */
     fun prepareUpload(upload: Upload)
 
     /**
      * Uploads the file via providing data in streams.
+     * The caller is responsible for closing the input stream.
      * @param upload metadata object.
      * @param stream a stream containing file data.
-     * @return how many bytes were committed to this backend.
+     * @return how many bytes were committed to this backend. 0 if the upload is already done.
      * @throws IllegalStateException if called before prepareUpload()
      * @throws java.io.IOError on io errors
      */

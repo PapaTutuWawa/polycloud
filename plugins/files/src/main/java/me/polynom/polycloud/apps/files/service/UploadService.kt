@@ -79,8 +79,9 @@ class UploadService(
         // FIXME: exception
         storage ?: throw PathEmptyException(upload.user, StoragePath(upload.path))
 
-        val transferred = storage.continueUpload(upload, body)
-        upload.offset += transferred
+        body.use { body ->
+            storage.continueUpload(upload, body)
+        }
         uploadRepository.save(upload)
 
         return upload.offset

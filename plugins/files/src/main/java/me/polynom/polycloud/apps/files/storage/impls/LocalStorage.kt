@@ -1,6 +1,7 @@
 package me.polynom.polycloud.apps.files.storage.impls
 
 import me.polynom.polycloud.apps.files.exceptions.StoragePathDoesNotExistException
+import me.polynom.polycloud.apps.files.exceptions.StorageQuotaException
 import me.polynom.polycloud.apps.files.exceptions.StorageWrongTypeException
 import me.polynom.polycloud.apps.files.persistence.entities.Upload
 import me.polynom.polycloud.apps.files.storage.EntryMeta
@@ -13,6 +14,7 @@ import java.io.IOError
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.AccessDeniedException
+import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -23,6 +25,9 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
+import kotlin.math.min
+
+private const val UPLOADS_FOLDER = ".me.polynom.polycloud.uploads"
 
 class LocalStorage(
     override val mount: StoragePath,
@@ -39,7 +44,10 @@ class LocalStorage(
             root.resolve(user, path.toString().substring(1))
         }
 
-    @Suppress("ReturnCount")
+    private fun resolveUpload(upload: Upload): Path = root.resolve(UPLOADS_FOLDER, upload.id!!.toString())
+
+    private fun isUploadsPath(path: StoragePath) = path.components.isNotEmpty() && path.components[0] == UPLOADS_FOLDER
+
     override fun list(
         user: String,
         path: StoragePath,
@@ -50,13 +58,15 @@ class LocalStorage(
 
         // Convert storage path to real file on the fs
         val fsPath = resolvePath(user, path)
-        if (!fsPath.exists() || !fsPath.isDirectory()) {
+        if (!fsPath.exists() || !fsPath.isDirectory() || isUploadsPath(path)) {
             throw StoragePathDoesNotExistException(path)
         }
 
         return fsPath
             .listDirectoryEntries()
-            .map {
+            .filter {
+                !it.startsWith(root.resolve(UPLOADS_FOLDER))
+            }.map {
                 val size = if (it.isRegularFile()) it.fileSize() else null
                 EntryMeta(it.name, !it.isRegularFile(), size)
             }
@@ -71,7 +81,7 @@ class LocalStorage(
         }
 
         val fsPath = resolvePath(user, path)
-        if (!fsPath.exists() || !fsPath.isRegularFile()) {
+        if (!fsPath.exists() || !fsPath.isRegularFile() || isUploadsPath(path)) {
             throw StoragePathDoesNotExistException(path)
         }
 
@@ -84,7 +94,7 @@ class LocalStorage(
     ) {
         val fsPath = resolvePath(user, path)
 
-        if (!fsPath.exists() || fsPath.isRegularFile() != path.file) {
+        if (!fsPath.exists() || fsPath.isRegularFile() != path.file || isUploadsPath(path)) {
             throw StoragePathDoesNotExistException(path)
         }
 
@@ -116,40 +126,80 @@ class LocalStorage(
     }
 
     override fun prepareUpload(upload: Upload) {
-        val path = root.resolve("uploads", upload.id!!.toString())
+        val vfsPath = StoragePath(upload.path)
+        if (!vfsPath.file) {
+            throw StorageWrongTypeException(vfsPath, true)
+        }
+
+        val relPath = vfsToRelative(vfsPath)
+        if (isUploadsPath(relPath)) {
+            throw StorageQuotaException(upload, 0)
+        }
+
+        val path = resolveUpload(upload)
         Files.createDirectories(path.parent)
-        Files.createFile(path)
+        try {
+            Files.createFile(path)
+            upload.offset = 0
+        } catch (ex: FileAlreadyExistsException) {
+            throw IllegalStateException(ex)
+        }
     }
 
     override fun continueUpload(
         upload: Upload,
         stream: InputStream,
     ): Long {
-        val path = root.resolve("uploads", upload.id!!.toString())
+        val path = resolveUpload(upload)
+        // Throw here to make sure we close the streams
+        if (!path.exists()) {
+            throw IllegalStateException("Upload has not been prepared.")
+        }
+
         val fos = Files.newOutputStream(path, StandardOpenOption.WRITE, StandardOpenOption.APPEND)
         val bos = BufferedOutputStream(fos)
+
+        // We make sure to only read as much data as the upload object is expecting.
+        // If the user supplies more data, we just ignore it.
         bos.use { fileStream ->
-            stream.use {
-                // FIXME: what if client sends more data than we expect?
-                // error out please
-                return it.transferTo(fileStream)
+            // FIXME: DoS, what if user spams parallel uploads? -> a lot of buffer allocations, have a user pool?
+            val buffer = ByteArray(4096 * 16)
+            var tx = 0L
+            while (true) {
+                val remaining = min(buffer.size.toLong(), upload.size - upload.offset)
+                val read = stream.read(buffer, 0, remaining.toInt())
+                if (read <= 0) {
+                    break
+                }
+
+                fileStream.write(buffer, 0, read)
+
+                upload.offset += read.toLong()
+                tx += read.toLong()
             }
+
+            return tx
         }
     }
 
     override fun finaliseUpload(upload: Upload) {
         val path = vfsToRelative(StoragePath(upload.path))
-        if (!path.file) {
-            throw IllegalArgumentException("Path references folder")
-        }
         val targetPath = resolvePath(upload.user, path)
-        val sourcePath = root.resolve("uploads", upload.id!!.toString())
+        val sourcePath = resolveUpload(upload)
+
+        if (!upload.done() || !sourcePath.exists()) {
+            throw IllegalStateException("Upload is not done or upload has not been prepared")
+        }
+
         Files.createDirectories(targetPath.parent)
         Files.move(sourcePath, targetPath)
     }
 
     override fun deleteUpload(upload: Upload) {
-        val path = root.resolve("uploads", upload.id!!.toString())
+        val path = resolveUpload(upload)
+        if (!path.exists()) {
+            throw IllegalStateException("Upload has not been prepared")
+        }
         Files.delete(path)
     }
 }

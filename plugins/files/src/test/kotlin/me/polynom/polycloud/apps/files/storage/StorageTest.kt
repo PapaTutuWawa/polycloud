@@ -2,8 +2,11 @@ package me.polynom.polycloud.apps.files.storage
 
 import me.polynom.polycloud.apps.files.exceptions.StoragePathDoesNotExistException
 import me.polynom.polycloud.apps.files.exceptions.StorageWrongTypeException
+import me.polynom.polycloud.apps.files.persistence.entities.Upload
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.io.ByteArrayInputStream
+import java.util.UUID
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
@@ -269,5 +272,169 @@ interface StorageTest<out T : Storage> {
         )
         storage.delete("a", StoragePath("/file"))
         assertEquals(listOf(), storage.list("a", StoragePath("/")))
+    }
+
+    fun createUpload(
+        user: String,
+        path: StoragePath,
+        content: ByteArray,
+    ): Upload = Upload(UUID.randomUUID(), content.size.toLong(), user, path.toString(), 0L)
+
+    @Test
+    fun test_upload_simple() {
+        // Just kinda make sure we do not throw any exception :)
+        val storage = createStorage()
+        val content = "My file yessirski".toByteArray()
+        val upload = createUpload("alice", StoragePath("/file.txt"), content)
+
+        storage.prepareUpload(upload)
+        assertEquals(
+            content.size.toLong(),
+            storage.continueUpload(upload, ByteArrayInputStream(content)),
+        )
+        assertEquals(content.size.toLong(), upload.offset)
+        storage.finaliseUpload(upload)
+
+        assertEquals(
+            listOf(
+                EntryMeta("file.txt", false, content.size.toLong()),
+            ),
+            storage.list("alice", StoragePath("/")),
+        )
+        assertContentEquals(
+            content,
+            storage.read("alice", StoragePath("/file.txt")).contentAsByteArray,
+        )
+    }
+
+    @Test
+    fun test_upload_prepareShouldResetOffset() {
+        val storage = createStorage()
+        val upload = Upload(UUID.randomUUID(), 8L, "test", "/test.txt", 5L)
+        storage.prepareUpload(upload)
+        assertEquals(0L, upload.offset)
+    }
+
+    @Test
+    fun test_upload_emptyFile() {
+        val storage = createStorage()
+        val upload = createUpload("bob", StoragePath("/folder/notyet/here/test.txt"), ByteArray(0))
+
+        storage.prepareUpload(upload)
+        storage.finaliseUpload(upload)
+
+        assertEquals(
+            listOf(
+                EntryMeta("test.txt", false, 0L),
+            ),
+            storage.list("bob", StoragePath("/folder/notyet/here/")),
+        )
+    }
+
+    @Test
+    fun test_upload_doublePrepare() {
+        val storage = createStorage()
+        val upload = createUpload("bob", StoragePath("/folder/notyet/here/test.txt"), ByteArray(0))
+
+        storage.prepareUpload(upload)
+        assertThrows<IllegalStateException> {
+            storage.prepareUpload(upload)
+        }
+    }
+
+    @Test
+    fun test_upload_throwOnFolderPath() {
+        val storage = createStorage()
+        val upload = createUpload("bob", StoragePath("/folder/"), ByteArray(0))
+
+        assertThrows<StorageWrongTypeException> {
+            storage.prepareUpload(upload)
+        }
+    }
+
+    @Test
+    fun test_upload_throwWithoutPrepare() {
+        val storage = createStorage()
+        val upload = createUpload("bob", StoragePath("/folder/notyet/here/test.txt"), ByteArray(0))
+        assertThrows<IllegalStateException> {
+            storage.continueUpload(upload, ByteArrayInputStream(ByteArray(0)))
+        }
+
+        assertThrows<IllegalStateException> {
+            storage.finaliseUpload(upload)
+        }
+    }
+
+    @Test
+    fun test_upload_chunkedUpload() {
+        val storage = createStorage()
+        val content = "This is a very long text and I am going to upload it in a chunked way. Hopefully nothing breaks.".toByteArray()
+        val upload = createUpload("bob", StoragePath("/folder/notyet/here/test.txt"), content)
+
+        storage.prepareUpload(upload)
+        val t1 = storage.continueUpload(upload, ByteArrayInputStream(content.sliceArray(0..9)))
+        assertEquals(10, t1)
+        val t2 = storage.continueUpload(upload, ByteArrayInputStream(content.sliceArray(10..13)))
+        assertEquals(4, t2)
+        val t3 = storage.continueUpload(upload, ByteArrayInputStream(content.sliceArray(14..<content.size)))
+        assertEquals(content.size.toLong() - 10 - 4, t3)
+
+        storage.finaliseUpload(upload)
+
+        assertContentEquals(content, storage.read("bob", StoragePath("/folder/notyet/here/test.txt")).contentAsByteArray)
+    }
+
+    @Test
+    fun test_upload_throwOnDeleteNonExistentUpload() {
+        val storage = createStorage()
+        val upload = createUpload("bob", StoragePath("/folder/notyet/here/test.txt"), ByteArray(0))
+        assertThrows<IllegalStateException> {
+            storage.deleteUpload(upload)
+        }
+    }
+
+    @Test
+    fun test_upload_deletePendingUploads() {
+        val storage = createStorage()
+        val upload = createUpload("bob", StoragePath("/folder/test/math.pdf"), ByteArray(0))
+
+        storage.prepareUpload(upload)
+        storage.deleteUpload(upload)
+
+        assertThrows<IllegalStateException> {
+            storage.continueUpload(upload, ByteArrayInputStream(ByteArray(0)))
+        }
+        assertThrows<IllegalStateException> {
+            storage.finaliseUpload(upload)
+        }
+    }
+
+    @Test
+    fun test_upload_extraContinuationIgnored() {
+        val storage = createStorage()
+        val upload = createUpload("bob", StoragePath("/folder/test/math.pdf"), ByteArray(0))
+
+        storage.prepareUpload(upload)
+        val off = upload.offset
+        val tx = storage.continueUpload(upload, ByteArrayInputStream(ByteArray(20)))
+        assertEquals(0L, tx)
+        assertEquals(off, upload.offset)
+    }
+
+    @Test
+    fun test_upload_truncateExcessiveUploadData() {
+        val storage = createStorage()
+        val content = "Test.".toByteArray()
+        val extraContent = "This is too much.".toByteArray()
+        val upload = createUpload("test", StoragePath("/something.mp4"), content)
+
+        storage.prepareUpload(upload)
+        val input = ByteArrayInputStream(content + extraContent)
+        val tx = storage.continueUpload(upload, input)
+        storage.finaliseUpload(upload)
+
+        assertEquals(content.size.toLong(), tx)
+        assertEquals(content.size.toLong(), upload.offset)
+        assertContentEquals(content, storage.read("test", StoragePath("/something.mp4")).contentAsByteArray)
     }
 }
