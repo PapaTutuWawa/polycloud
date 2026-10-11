@@ -38,5 +38,6 @@ tasks.register("ci") {
     subprojects.forEach {
         dependsOn(it.tasks.named("spotlessCheck"))
         dependsOn(it.tasks.named("detekt"))
+        dependsOn(it.tasks.named("test"))
     }
 }
