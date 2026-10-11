@@ -330,11 +330,15 @@ class YearlyRecurrence(
 ) : BaseRecurrence(startDate, viewStartDate, viewEndDate, endDate, occurrences) {
     init {
         assert((endDate != null).xor(occurrences != null))
-        counter =
+
+        counter = if (viewStartDate.isAfter(startDate)) {
             ChronoUnit.YEARS.between(
-                startDate.truncatedTo(ChronoUnit.DAYS),
                 viewStartDate.truncatedTo(ChronoUnit.DAYS),
+                startDate.truncatedTo(ChronoUnit.DAYS),
             )
+        } else {
+            -1
+        }
     }
 
     override fun nextOccurrence(n: Long): ZonedDateTime =

@@ -27,9 +27,7 @@ interface EventMapper {
     @EnumMapping(nameTransformationStrategy = MappingConstants.CASE_TRANSFORMATION, configuration = "upper")
     fun repeatModeToRecurringFrequency(mode: RepeatMode): RecurringInfoDto.RecurringFrequency
 
-    fun repetitionConfigToRecurringInfoRepetitionConfig(repeat: RepetitionConfig?, repeatStart: ZonedDateTime): RecurringInfoDto.RepetitionConfigDto? {
-        if (repeat == null) return null
-
+    fun repetitionConfigToRecurringInfoRepetitionConfig(repeat: RepetitionConfig?, repeatStart: ZonedDateTime): RecurringInfoDto.RepetitionConfigDto {
         if (repeat is WeeklyRepetitionConfig) {
             return RecurringInfoDto.RepetitionConfigDto(
                 sameDay = null,
@@ -44,7 +42,11 @@ interface EventMapper {
             )
         }
 
-        throw IllegalArgumentException()
+        return RecurringInfoDto.RepetitionConfigDto(
+            sameDay = null,
+            weekdays = null,
+            repeatStarts = repeatStart,
+        )
     }
 
     fun repetitionToRecurringInfoDto(repetition: Repetition, repeatStart: ZonedDateTime): RecurringInfoDto {

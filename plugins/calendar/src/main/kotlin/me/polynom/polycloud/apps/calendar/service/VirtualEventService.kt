@@ -98,6 +98,10 @@ class VirtualEventService(
                 .withHour(event.timeframe!!.upper().hour)
                 .withMinute(event.timeframe!!.upper().minute)
 
+            // Pre-compute the recurring info.
+            // We have to handle daily and yearly a bit differently here
+            val repeatInfo = eventMapper.repetitionToRecurringInfoDto(event.repeat!!, event.timeframe!!.lower())
+
             // Check if there is an override.
             if (hasOverride) {
                 val override = overrides[event.id]?.firstOrNull { it.parent?.parentCounter == idx }
@@ -117,7 +121,7 @@ class VirtualEventService(
                             event.id.toString(),
                             idx,
                             VirtualEventType.RECURRING,
-                            eventMapper.repetitionToRecurringInfoDto(event.repeat!!, event.timeframe!!.lower()),
+                            repeatInfo,
                         ),
                     )
                     continue
@@ -139,7 +143,7 @@ class VirtualEventService(
                     event.id.toString(),
                     idx,
                     VirtualEventType.RECURRING,
-                    eventMapper.repetitionToRecurringInfoDto(event.repeat!!, event.timeframe!!.lower()),
+                    repeatInfo,
                 ),
             )
             count++
