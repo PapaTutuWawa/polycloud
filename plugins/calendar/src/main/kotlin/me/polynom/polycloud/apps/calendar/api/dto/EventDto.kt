@@ -45,4 +45,7 @@ data class EventDto(
 
     /** The type of virtual event this is. */
     val virtualEventType: VirtualEventType? = null,
+
+    /** Repeat configuration. */
+    val repeatInfo: RecurringInfoDto? = null,
 )

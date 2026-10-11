@@ -1,17 +1,18 @@
 package me.polynom.polycloud.apps.calendar.service
 
 import me.polynom.polycloud.apps.calendar.api.dto.EventDto
+import me.polynom.polycloud.apps.calendar.api.dto.RecurringInfoDto
 import me.polynom.polycloud.apps.calendar.api.dto.VirtualEventType
 import me.polynom.polycloud.apps.calendar.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.calendar.dates.DailyRecurrence
 import me.polynom.polycloud.apps.calendar.dates.MonthlyRecurrence
 import me.polynom.polycloud.apps.calendar.dates.WeeklyRecurrence
 import me.polynom.polycloud.apps.calendar.dates.YearlyRecurrence
+import me.polynom.polycloud.apps.calendar.mappers.EventMapper
 import me.polynom.polycloud.apps.calendar.persistence.entities.Event
 import me.polynom.polycloud.apps.calendar.persistence.entities.MonthlyRepetitionConfig
 import me.polynom.polycloud.apps.calendar.persistence.entities.RepeatMode
 import me.polynom.polycloud.apps.calendar.persistence.entities.WeeklyRepetitionConfig
-import me.polynom.polycloud.apps.calendar.persistence.repository.EventRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -24,7 +25,9 @@ import java.util.UUID
  */
 @PluginEnabled
 @Service
-class VirtualEventService {
+class VirtualEventService(
+    private val eventMapper: EventMapper,
+) {
     /** Logging. */
     private val logger: Logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -74,7 +77,6 @@ class VirtualEventService {
             )
         }
 
-        // TODO: Check if we have modified a recurring event and modify or remove it.
         logger.debug(
             "Using parameters for recurrence: [{}] [{}] [{}] [{}] [{}]",
             event.timeframe!!.lower(),
@@ -115,6 +117,7 @@ class VirtualEventService {
                             event.id.toString(),
                             idx,
                             VirtualEventType.RECURRING,
+                            eventMapper.repetitionToRecurringInfoDto(event.repeat!!, event.timeframe!!.lower()),
                         ),
                     )
                     continue
@@ -136,6 +139,7 @@ class VirtualEventService {
                     event.id.toString(),
                     idx,
                     VirtualEventType.RECURRING,
+                    eventMapper.repetitionToRecurringInfoDto(event.repeat!!, event.timeframe!!.lower()),
                 ),
             )
             count++
