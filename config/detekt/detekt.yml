@@ -6,3 +6,9 @@ style:
     maxLineLength: 200
   ForbiddenComment:
     comments: [ "STOPSHIP:" ]
+  ThrowsCount:
+    max: 5
+
+complexity:
+  TooManyFunctions:
+    allowedFunctionsPerClass: 20
