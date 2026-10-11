@@ -40,6 +40,16 @@ class DavXmlParserTest {
     }
 
     @Test
+    fun test_parsePropfind_namedPropWithNoNamespaceInScope_usesEmptyNamespaceNotDav() {
+        // RFC 4918's "no namespace" is an empty string, not DAV: - litmus's propnullns test.
+        val body = """<?xml version="1.0"?><D:propfind xmlns:D="DAV:"><D:prop><nonamespace/></D:prop></D:propfind>"""
+
+        val result = assertIs<PropfindRequest.Named>(DavXmlParser.parsePropfind(body))
+
+        assertEquals(listOf(DavPropertyName("", "nonamespace")), result.names)
+    }
+
+    @Test
     fun test_parsePropfind_namedCustomNamespaceProp_preservesNamespace() {
         val body =
             """<?xml version="1.0"?><D:propfind xmlns:D="DAV:" xmlns:x="urn:test"><D:prop><x:label/></D:prop></D:propfind>"""
@@ -50,7 +60,7 @@ class DavXmlParserTest {
     }
 
     @Test
-    fun test_parseProppatch_setAndRemove_areSeparated() {
+    fun test_parseProppatch_setAndRemove_bothCaptured() {
         val body =
             """
             <?xml version="1.0"?>
@@ -62,8 +72,37 @@ class DavXmlParserTest {
 
         val result = DavXmlParser.parseProppatch(body)
 
-        assertEquals(listOf(DavPropertyName("urn:test", "label") to "hello"), result.sets)
-        assertEquals(listOf(DavPropertyName("urn:test", "obsolete")), result.removes)
+        assertEquals(
+            listOf(
+                ProppatchOperation.Set(DavPropertyName("urn:test", "label"), "hello"),
+                ProppatchOperation.Remove(DavPropertyName("urn:test", "obsolete")),
+            ),
+            result.operations,
+        )
+    }
+
+    @Test
+    fun test_parseProppatch_preservesDocumentOrderForTheSameProperty() {
+        // RFC 4918 section 9.2: instructions MUST be processed in document order. A remove
+        // followed by a set for the same property must leave it set, not removed.
+        val body =
+            """
+            <?xml version="1.0"?>
+            <D:propertyupdate xmlns:D="DAV:" xmlns:x="urn:test">
+              <D:remove><D:prop><x:label/></D:prop></D:remove>
+              <D:set><D:prop><x:label>hello</x:label></D:prop></D:set>
+            </D:propertyupdate>
+            """.trimIndent()
+
+        val result = DavXmlParser.parseProppatch(body)
+
+        assertEquals(
+            listOf(
+                ProppatchOperation.Remove(DavPropertyName("urn:test", "label")),
+                ProppatchOperation.Set(DavPropertyName("urn:test", "label"), "hello"),
+            ),
+            result.operations,
+        )
     }
 
     @Test

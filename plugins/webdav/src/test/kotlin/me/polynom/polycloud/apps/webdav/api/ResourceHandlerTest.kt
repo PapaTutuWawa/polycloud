@@ -2,6 +2,7 @@ package me.polynom.polycloud.apps.webdav.api
 
 import me.polynom.polycloud.apps.webdav.lock.LockDepth
 import me.polynom.polycloud.apps.webdav.lock.LockManager
+import me.polynom.polycloud.apps.webdav.lock.LockScope
 import me.polynom.polycloud.apps.webdav.store.DavFile
 import me.polynom.polycloud.apps.webdav.store.InMemoryDavStore
 import org.junit.jupiter.api.Test
@@ -193,7 +194,7 @@ class ResourceHandlerTest {
     fun test_put_lockedByAnotherClient_isLocked() {
         val (handler, store, lockManager) = newHandler()
         store.putFile("/a.txt", ByteArray(0), "text/plain")
-        lockManager.lock("/a.txt", LockDepth.ZERO, owner = null)
+        lockManager.lock("/a.txt", LockDepth.ZERO, scope = LockScope.EXCLUSIVE, owner = null)
         val request = MockHttpServletRequest("PUT", "/dav/a.txt")
         val response = MockHttpServletResponse()
 
@@ -209,7 +210,7 @@ class ResourceHandlerTest {
     fun test_put_withOwnLockToken_succeeds() {
         val (handler, store, lockManager) = newHandler()
         store.putFile("/a.txt", ByteArray(0), "text/plain")
-        val lock = lockManager.lock("/a.txt", LockDepth.ZERO, owner = null)
+        val lock = lockManager.lock("/a.txt", LockDepth.ZERO, scope = LockScope.EXCLUSIVE, owner = null)
         val request = MockHttpServletRequest("PUT", "/dav/a.txt")
         request.addHeader("If", "(<${lock.token}>)")
         val response = MockHttpServletResponse()
@@ -217,6 +218,83 @@ class ResourceHandlerTest {
         handler.put(request, response, "/a.txt")
 
         assertEquals(HttpStatus.NO_CONTENT.value(), response.status)
+    }
+
+    @Test
+    fun test_put_withIfHeaderReferencingUnknownLockToken_isPreconditionFailed() {
+        // Regression: this used to be silently ignored since the resource wasn't actually
+        // locked, letting the PUT through with 204 instead of rejecting the bogus condition.
+        val (handler, store) = newHandler()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val request = MockHttpServletRequest("PUT", "/dav/a.txt")
+        request.addHeader("If", "(<urn:uuid:does-not-exist>)")
+        val response = MockHttpServletResponse()
+
+        val exception = assertThrows<DavException> { handler.put(request, response, "/a.txt") }
+
+        assertEquals(HttpStatus.PRECONDITION_FAILED.value(), exception.status)
+    }
+
+    @Test
+    fun test_put_withIfHeaderMatchingCurrentEtag_succeeds() {
+        val (handler, store) = newHandler()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val etag = (store.get("/a.txt") as DavFile).etag
+        val request = MockHttpServletRequest("PUT", "/dav/a.txt")
+        request.addHeader("If", "([$etag])")
+        val response = MockHttpServletResponse()
+
+        handler.put(request, response, "/a.txt")
+
+        assertEquals(HttpStatus.NO_CONTENT.value(), response.status)
+    }
+
+    @Test
+    fun test_put_withIfHeaderMismatchedEtag_isPreconditionFailed() {
+        val (handler, store) = newHandler()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val request = MockHttpServletRequest("PUT", "/dav/a.txt")
+        request.addHeader("If", "([\"not-the-real-etag\"])")
+        val response = MockHttpServletResponse()
+
+        val exception = assertThrows<DavException> { handler.put(request, response, "/a.txt") }
+
+        assertEquals(HttpStatus.PRECONDITION_FAILED.value(), exception.status)
+    }
+
+    @Test
+    fun test_put_withRealTokenAndNotBogusToken_succeeds_litmusCondPutWithNot() {
+        // litmus's cond_put_with_not: "(<real-token>) (Not <DAV:no-lock>)" should succeed.
+        val (handler, store, lockManager) = newHandler()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val lock = lockManager.lock("/a.txt", LockDepth.ZERO, LockScope.EXCLUSIVE, owner = null)
+        val request = MockHttpServletRequest("PUT", "/dav/a.txt")
+        request.addHeader("If", "(<${lock.token}>) (Not <DAV:no-lock>)")
+        val response = MockHttpServletResponse()
+
+        handler.put(request, response, "/a.txt")
+
+        assertEquals(HttpStatus.NO_CONTENT.value(), response.status)
+    }
+
+    @Test
+    fun test_put_withCorruptedTokenAndNotBogusToken_isLocked_litmusCondPutCorruptToken() {
+        // litmus's cond_put_corrupt_token: the same shape as above but with the real token
+        // corrupted - the "(Not <DAV:no-lock>)" filler list must not rescue it via OR; every
+        // list must hold (AND), so a single bad list fails the whole header. litmus specifically
+        // prefers 423 here (a pure lock-token mismatch against an actually-locked resource),
+        // not 412 (which is reserved for failures that also involve an entity-tag condition, or
+        // where the resource isn't locked at all - see LockManager.checkIfHeader).
+        val (handler, store, lockManager) = newHandler()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val lock = lockManager.lock("/a.txt", LockDepth.ZERO, LockScope.EXCLUSIVE, owner = null)
+        val request = MockHttpServletRequest("PUT", "/dav/a.txt")
+        request.addHeader("If", "(<${lock.token}x>) (Not <DAV:no-lock>)")
+        val response = MockHttpServletResponse()
+
+        val exception = assertThrows<DavException> { handler.put(request, response, "/a.txt") }
+
+        assertEquals(HttpStatus.LOCKED.value(), exception.status)
     }
 
     @Test
@@ -264,7 +342,7 @@ class ResourceHandlerTest {
     fun test_delete_locked_isLocked() {
         val (handler, store, lockManager) = newHandler()
         store.putFile("/a.txt", ByteArray(0), "text/plain")
-        lockManager.lock("/a.txt", LockDepth.ZERO, owner = null)
+        lockManager.lock("/a.txt", LockDepth.ZERO, scope = LockScope.EXCLUSIVE, owner = null)
         val request = MockHttpServletRequest("DELETE", "/dav/a.txt")
         val response = MockHttpServletResponse()
 

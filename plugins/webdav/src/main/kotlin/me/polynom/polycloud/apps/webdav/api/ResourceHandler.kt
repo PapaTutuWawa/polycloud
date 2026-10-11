@@ -70,11 +70,10 @@ class ResourceHandler(
         if (store.get(DavPath.parent(path)) !is DavCollection) {
             throw DavException(HttpStatus.CONFLICT.value(), "Parent collection does not exist")
         }
-        if (isLockedByOther(request, path)) {
-            throw DavException(HttpStatus.LOCKED.value(), "Resource is locked")
-        }
+        val existingNode = store.get(path)
+        checkPrecondition(lockManager, request, path, existingNode?.etag)
 
-        val existed = store.exists(path)
+        val existed = existingNode != null
         val contentType = ContentTypes.resolve(path, request.contentType)
         val file = store.putFile(path, request.inputStream.readBytes(), contentType)
 
@@ -90,12 +89,8 @@ class ResourceHandler(
         if (path == DavPath.ROOT) {
             throw DavException(HttpStatus.FORBIDDEN.value(), "Cannot delete the root collection")
         }
-        if (!store.exists(path)) {
-            throw DavException(HttpStatus.NOT_FOUND.value())
-        }
-        if (isLockedByOther(request, path)) {
-            throw DavException(HttpStatus.LOCKED.value(), "Resource is locked")
-        }
+        val node = store.get(path) ?: throw DavException(HttpStatus.NOT_FOUND.value())
+        checkPrecondition(lockManager, request, path, node.etag)
 
         store.delete(path)
         response.status = HttpStatus.NO_CONTENT.value()
@@ -119,11 +114,6 @@ class ResourceHandler(
         store.makeCollection(path)
         response.status = HttpStatus.CREATED.value()
     }
-
-    private fun isLockedByOther(
-        request: HttpServletRequest,
-        path: String,
-    ): Boolean = lockManager.isLockedByOther(path, LockManager.parseIfHeaderTokens(request.getHeader(DavHeaders.IF)))
 
     private fun renderCollectionListing(path: String): String {
         val items =

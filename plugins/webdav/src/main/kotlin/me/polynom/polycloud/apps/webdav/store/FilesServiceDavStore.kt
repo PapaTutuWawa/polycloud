@@ -20,8 +20,10 @@ import java.io.ByteArrayInputStream
 import java.nio.file.FileAlreadyExistsException
 import java.time.Instant
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 private const val HEX_RADIX = 16
+private val VIRTUAL_DIRECTORY_STAT = StorageStat(directory = true, size = null, lastModified = Instant.EPOCH)
 
 /**
  * [DavStore] backed by the files plugin's [FilesService]/[StorageService], user-rooted at
@@ -41,12 +43,21 @@ class FilesServiceDavStore(
     private val storageService: StorageService,
     private val userContext: UserContext,
 ) : DavStore {
+    /**
+     * PROPPATCH-set custom properties, keyed by path. [get] hands out this exact mutable map
+     * reference so [me.polynom.polycloud.apps.webdav.api.PropertyHandler]'s direct mutation of
+     * `node.deadProperties` actually persists across requests - there is nothing else backing
+     * it, by design (in-memory only, lost on restart).
+     */
+    private val deadPropertiesByPath = ConcurrentHashMap<String, MutableMap<DavPropertyName, String>>()
+
     override fun exists(path: String): Boolean = stat(path) != null
 
     override fun get(path: String): DavNode? {
         val stat = stat(path) ?: return null
+        val deadProperties = deadPropertiesByPath.computeIfAbsent(path) { mutableMapOf() }
         return if (stat.directory) {
-            DavCollection(lastModified = stat.lastModified, etag = etagFor(stat))
+            DavCollection(lastModified = stat.lastModified, etag = etagFor(stat), deadProperties = deadProperties)
         } else {
             val resource = filesService.getFile(currentUser(), toStoragePath(path, file = true))
             DavFile(
@@ -54,6 +65,7 @@ class FilesServiceDavStore(
                 contentType = ContentTypes.resolve(path, null),
                 lastModified = stat.lastModified,
                 etag = etagFor(stat),
+                deadProperties = deadProperties,
             )
         }
     }
@@ -103,6 +115,7 @@ class FilesServiceDavStore(
         val stat = stat(path) ?: throw DavException(HttpStatus.NOT_FOUND.value())
         val (storage, relPath) = resolveStorage(toStoragePath(path, file = !stat.directory))
         mapStorageExceptions { storage.delete(currentUser(), relPath) }
+        clearDeadProperties(path)
     }
 
     override fun copy(
@@ -119,6 +132,7 @@ class FilesServiceDavStore(
                 else -> throw DavException(HttpStatus.NOT_IMPLEMENTED.value(), "Cross-backend folder copy is not supported yet")
             }
         }
+        relocateDeadProperties(source, destination, keepSource = true, deep = !shallow)
 
         return transfer.destinationExisted
     }
@@ -144,9 +158,41 @@ class FilesServiceDavStore(
                 }
             }
         }
+        relocateDeadProperties(source, destination, keepSource = false, deep = true)
 
         return transfer.destinationExisted
     }
+
+    private fun clearDeadProperties(path: String) {
+        deadPropertiesByPath.remove(path)
+        deadPropertiesByPath.keys.removeIf { DavPath.isAncestorOf(path, it) }
+    }
+
+    /** Shared by [copy] (keepSource=true) and [move] (keepSource=false). */
+    private fun relocateDeadProperties(
+        source: String,
+        destination: String,
+        keepSource: Boolean,
+        deep: Boolean,
+    ) {
+        takeDeadProperties(source, keepSource)?.let { deadPropertiesByPath[destination] = it }
+        if (!deep) {
+            return
+        }
+
+        deadPropertiesByPath.keys
+            .filter { DavPath.isAncestorOf(source, it) }
+            .toList()
+            .forEach { key ->
+                val relocated = DavPath.normalize(destination + key.removePrefix(source))
+                takeDeadProperties(key, keepSource)?.let { deadPropertiesByPath[relocated] = it }
+            }
+    }
+
+    private fun takeDeadProperties(
+        path: String,
+        keep: Boolean,
+    ): MutableMap<DavPropertyName, String>? = if (keep) deadPropertiesByPath[path]?.toMutableMap() else deadPropertiesByPath.remove(path)
 
     private fun currentUser(): String = userContext.getUser()?.username ?: throw DavException(HttpStatus.UNAUTHORIZED.value())
 
@@ -167,19 +213,17 @@ class FilesServiceDavStore(
     /** Also covers the root and virtual, storage-less parent folders of mount points. */
     private fun stat(path: String): StorageStat? {
         if (path == DavPath.ROOT) {
-            return virtualDirectoryStat()
+            return VIRTUAL_DIRECTORY_STAT
         }
 
         val storagePath = toStoragePath(path, file = false)
         val (storage, relPath) = storageService.resolveMount(storagePath)
         return when {
             storage != null -> storage.stat(currentUser(), relPath)
-            storageService.listMounts(storagePath).isNotEmpty() -> virtualDirectoryStat()
+            storageService.listMounts(storagePath).isNotEmpty() -> VIRTUAL_DIRECTORY_STAT
             else -> null
         }
     }
-
-    private fun virtualDirectoryStat() = StorageStat(directory = true, size = null, lastModified = Instant.EPOCH)
 
     private fun etagFor(stat: StorageStat): String {
         val sizeMarker = stat.size?.toString(HEX_RADIX) ?: "dir"

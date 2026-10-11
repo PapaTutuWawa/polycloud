@@ -1,5 +1,6 @@
 package me.polynom.polycloud.apps.webdav.xml
 
+import me.polynom.polycloud.apps.webdav.lock.LockScope
 import me.polynom.polycloud.apps.webdav.store.DavPropertyName
 import org.w3c.dom.Element
 import java.io.ByteArrayInputStream
@@ -17,9 +18,22 @@ sealed interface PropfindRequest {
     ) : PropfindRequest
 }
 
+/** A single PROPPATCH instruction, in document order - RFC 4918 section 9.2 requires processing in order. */
+sealed interface ProppatchOperation {
+    val name: DavPropertyName
+
+    data class Set(
+        override val name: DavPropertyName,
+        val value: String,
+    ) : ProppatchOperation
+
+    data class Remove(
+        override val name: DavPropertyName,
+    ) : ProppatchOperation
+}
+
 data class ProppatchRequest(
-    val sets: List<Pair<DavPropertyName, String>>,
-    val removes: List<DavPropertyName>,
+    val operations: List<ProppatchOperation>,
 )
 
 /** Parsing of the small subset of WebDAV request XML (RFC 4918) this plugin needs: PROPFIND/PROPPATCH/LOCK bodies. */
@@ -52,21 +66,19 @@ object DavXmlParser {
 
     fun parseProppatch(body: String): ProppatchRequest {
         val root = parseDocument(body)
-        val sets = mutableListOf<Pair<DavPropertyName, String>>()
-        val removes = mutableListOf<DavPropertyName>()
+        val operations = mutableListOf<ProppatchOperation>()
 
         childElements(root).forEach { instruction ->
             val propElement = findChild(instruction, "prop") ?: return@forEach
             childElements(propElement).forEach { prop ->
-                if (instruction.localName == "set") {
-                    sets += prop.toPropertyName() to prop.textContent
-                } else if (instruction.localName == "remove") {
-                    removes += prop.toPropertyName()
+                when (instruction.localName) {
+                    "set" -> operations += ProppatchOperation.Set(prop.toPropertyName(), prop.textContent)
+                    "remove" -> operations += ProppatchOperation.Remove(prop.toPropertyName())
                 }
             }
         }
 
-        return ProppatchRequest(sets, removes)
+        return ProppatchRequest(operations)
     }
 
     fun parseLockOwner(body: String): String? {
@@ -77,7 +89,19 @@ object DavXmlParser {
         return findChild(parseDocument(body), "owner")?.textContent?.trim()?.takeIf { it.isNotEmpty() }
     }
 
-    private fun Element.toPropertyName(): DavPropertyName = DavPropertyName(namespaceURI ?: DAV_NAMESPACE, localName)
+    /** Defaults to exclusive, matching most clients that omit `<lockscope>` entirely. */
+    fun parseLockScope(body: String): LockScope {
+        if (body.isBlank()) {
+            return LockScope.EXCLUSIVE
+        }
+
+        val scopeElement = findChild(parseDocument(body), "lockscope")
+        val isShared = scopeElement != null && findChild(scopeElement, "shared") != null
+        return if (isShared) LockScope.SHARED else LockScope.EXCLUSIVE
+    }
+
+    /** An element with no namespace in scope has a null [Element.getNamespaceURI] - that's RFC 4918's "no namespace", not DAV:. */
+    private fun Element.toPropertyName(): DavPropertyName = DavPropertyName(namespaceURI ?: "", localName)
 
     private fun parseDocument(body: String): Element = newDocumentBuilder().parse(ByteArrayInputStream(body.toByteArray())).documentElement
 

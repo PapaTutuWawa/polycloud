@@ -2,8 +2,10 @@ package me.polynom.polycloud.apps.webdav.api
 
 import me.polynom.polycloud.apps.webdav.lock.LockDepth
 import me.polynom.polycloud.apps.webdav.lock.LockManager
+import me.polynom.polycloud.apps.webdav.lock.LockScope
 import me.polynom.polycloud.apps.webdav.store.InMemoryDavStore
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
@@ -157,6 +159,31 @@ class PropertyHandlerTest {
     }
 
     @Test
+    fun test_proppatch_removeThenSetSameProperty_appliesInDocumentOrderSoItEndsUpSet() {
+        // RFC 4918 section 9.2: instructions must be processed in document order. A remove
+        // followed by a set for the same property, in the same request, must leave it set.
+        val (handler, store) = newHandler()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val request = MockHttpServletRequest("PROPPATCH", "/dav/a.txt")
+        request.setContent(
+            """
+            <?xml version="1.0"?>
+            <D:propertyupdate xmlns:D="DAV:" xmlns:x="urn:test">
+              <D:remove><D:prop><x:label/></D:prop></D:remove>
+              <D:set><D:prop><x:label>hello</x:label></D:prop></D:set>
+            </D:propertyupdate>
+            """.trimIndent().toByteArray(),
+        )
+        handler.proppatch(request, MockHttpServletResponse(), "/a.txt")
+
+        val propfindRequest = MockHttpServletRequest("PROPFIND", "/dav/a.txt")
+        val propfindResponse = MockHttpServletResponse()
+        handler.propfind(propfindRequest, propfindResponse, "/a.txt")
+
+        assertTrue(propfindResponse.contentAsString.contains("<ns1:label>hello</ns1:label>"))
+    }
+
+    @Test
     fun test_proppatch_missingResource_is404() {
         val (handler) = newHandler()
         val request = MockHttpServletRequest("PROPPATCH", "/dav/missing")
@@ -174,14 +201,14 @@ class PropertyHandlerTest {
         val lockManager = LockManager()
         val handler = PropertyHandler(store, lockManager)
         store.putFile("/a.txt", ByteArray(0), "text/plain")
-        lockManager.lock("/a.txt", LockDepth.ZERO, owner = null)
+        lockManager.lock("/a.txt", LockDepth.ZERO, scope = LockScope.EXCLUSIVE, owner = null)
         val request = MockHttpServletRequest("PROPPATCH", "/dav/a.txt")
         request.setContent(ByteArray(0))
         val response = MockHttpServletResponse()
 
-        handler.proppatch(request, response, "/a.txt")
+        val exception = assertThrows<DavException> { handler.proppatch(request, response, "/a.txt") }
 
-        assertEquals(HttpStatus.LOCKED.value(), response.status)
+        assertEquals(HttpStatus.LOCKED.value(), exception.status)
     }
 
     private fun setLabel(
@@ -198,6 +225,32 @@ class PropertyHandlerTest {
             """.trimIndent().toByteArray(),
         )
         handler.proppatch(request, MockHttpServletResponse(), path)
+    }
+
+    @Test
+    fun test_propfind_malformedXmlBody_is400NotA500() {
+        val (handler, store) = newHandler()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val request = MockHttpServletRequest("PROPFIND", "/dav/a.txt")
+        request.setContent("<not well formed".toByteArray())
+        val response = MockHttpServletResponse()
+
+        val exception = assertThrows<DavException> { handler.propfind(request, response, "/a.txt") }
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), exception.status)
+    }
+
+    @Test
+    fun test_proppatch_malformedXmlBody_is400NotA500() {
+        val (handler, store) = newHandler()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val request = MockHttpServletRequest("PROPPATCH", "/dav/a.txt")
+        request.setContent("<not well formed".toByteArray())
+        val response = MockHttpServletResponse()
+
+        val exception = assertThrows<DavException> { handler.proppatch(request, response, "/a.txt") }
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), exception.status)
     }
 
     private fun countOccurrences(

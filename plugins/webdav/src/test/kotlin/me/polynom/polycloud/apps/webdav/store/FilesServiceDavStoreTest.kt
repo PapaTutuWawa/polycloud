@@ -292,6 +292,85 @@ class FilesServiceDavStoreTest {
     }
 
     @Test
+    fun test_deadProperties_setViaOneGet_arePresentOnTheNextGet() {
+        // Mirrors what PropertyHandler.proppatch() does: fetch a node, mutate its
+        // deadProperties map directly. Regression for: each get() used to hand out a fresh,
+        // disconnected map, so PROPPATCH-set properties vanished immediately.
+        val store = storeWithMountAtRoot()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val name = DavPropertyName("urn:test", "label")
+
+        store.get("/a.txt")!!.deadProperties[name] = "hello"
+
+        assertEquals("hello", store.get("/a.txt")!!.deadProperties[name])
+    }
+
+    @Test
+    fun test_deadProperties_survivePutFileOverwrite() {
+        val store = storeWithMountAtRoot()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val name = DavPropertyName("urn:test", "label")
+        store.get("/a.txt")!!.deadProperties[name] = "hello"
+
+        store.putFile("/a.txt", "new content".toByteArray(), "text/plain")
+
+        assertEquals("hello", store.get("/a.txt")!!.deadProperties[name])
+    }
+
+    @Test
+    fun test_deadProperties_areRemovedWithTheNode() {
+        val store = storeWithMountAtRoot()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val name = DavPropertyName("urn:test", "label")
+        store.get("/a.txt")!!.deadProperties[name] = "hello"
+
+        store.delete("/a.txt")
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+
+        assertEquals(null, store.get("/a.txt")!!.deadProperties[name])
+    }
+
+    @Test
+    fun test_deadProperties_areCopiedButNotSharedBetweenSourceAndDestination() {
+        val store = storeWithMountAtRoot()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val name = DavPropertyName("urn:test", "label")
+        store.get("/a.txt")!!.deadProperties[name] = "original"
+
+        store.copy("/a.txt", "/b.txt")
+        store.get("/b.txt")!!.deadProperties[name] = "changed"
+
+        assertEquals("original", store.get("/a.txt")!!.deadProperties[name])
+        assertEquals("changed", store.get("/b.txt")!!.deadProperties[name])
+    }
+
+    @Test
+    fun test_deadProperties_areRelocatedOnMove() {
+        val store = storeWithMountAtRoot()
+        store.putFile("/a.txt", ByteArray(0), "text/plain")
+        val name = DavPropertyName("urn:test", "label")
+        store.get("/a.txt")!!.deadProperties[name] = "hello"
+
+        store.move("/a.txt", "/b.txt")
+
+        assertEquals("hello", store.get("/b.txt")!!.deadProperties[name])
+    }
+
+    @Test
+    fun test_deadProperties_onFolderDescendants_areRelocatedOnDeepCopy() {
+        val store = storeWithMountAtRoot()
+        store.makeCollection("/a")
+        store.putFile("/a/f.txt", ByteArray(0), "text/plain")
+        val name = DavPropertyName("urn:test", "label")
+        store.get("/a/f.txt")!!.deadProperties[name] = "hello"
+
+        store.copy("/a", "/b", shallow = false)
+
+        assertEquals("hello", store.get("/b/f.txt")!!.deadProperties[name])
+        assertEquals("hello", store.get("/a/f.txt")!!.deadProperties[name])
+    }
+
+    @Test
     fun test_unauthenticated_throwsUnauthorized() {
         val storageService = StorageService(StorageConfig(listOf(LocalStorageConfig(rootDir, StoragePath("/")))))
         val filesService = FilesService(storageService, mock<UploadRepository>())

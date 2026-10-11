@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import me.polynom.polycloud.apps.webdav.lock.LockDepth
 import me.polynom.polycloud.apps.webdav.lock.LockManager
+import me.polynom.polycloud.apps.webdav.store.DavCollection
+import me.polynom.polycloud.apps.webdav.store.DavPath
 import me.polynom.polycloud.apps.webdav.store.DavStore
 import me.polynom.polycloud.apps.webdav.xml.DavXml
 import me.polynom.polycloud.apps.webdav.xml.DavXmlParser
@@ -11,7 +13,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import java.time.Duration
 
-/** Handles LOCK and UNLOCK (exclusive write locks only; shared locks and lock-null resources are not supported). */
+/** Handles LOCK and UNLOCK. */
 @Component
 class LockHandler(
     private val store: DavStore,
@@ -56,7 +58,7 @@ class LockHandler(
     ) {
         val refreshed = lockManager.refresh(token)
         val node = store.get(path)
-        if (refreshed == null || refreshed.path != path || node == null) {
+        if (refreshed == null || node == null || !refreshed.covers(path, DavPath::isAncestorOf)) {
             fail(response, HttpStatus.PRECONDITION_FAILED.value(), "No such lock")
             return
         }
@@ -70,22 +72,37 @@ class LockHandler(
         response: HttpServletResponse,
         path: String,
     ) {
-        val node = store.get(path)
-        if (node == null) {
-            fail(response, HttpStatus.NOT_FOUND.value(), "Lock-null resources are not supported")
+        val existed = store.exists(path)
+        if (!existed && !createLockNullResource(path)) {
+            fail(response, HttpStatus.CONFLICT.value(), "Parent collection does not exist")
             return
         }
-        if (lockManager.isLockedByOther(path, emptySet())) {
+        val node = store.get(path) ?: error("Resource at $path vanished right after being created")
+
+        val body = readBody(request)
+        val scope = parseXmlBody { DavXmlParser.parseLockScope(body) }
+        if (!lockManager.canAcquire(path, scope)) {
             fail(response, HttpStatus.LOCKED.value())
             return
         }
 
-        val owner = DavXmlParser.parseLockOwner(readBody(request))
+        val owner = parseXmlBody { DavXmlParser.parseLockOwner(body) }
         val depth = if (request.getHeader(DavHeaders.DEPTH) == "0") LockDepth.ZERO else LockDepth.INFINITY
-        val lock = lockManager.lock(path, depth, owner, parseTimeout(request))
+        val lock = lockManager.lock(path, depth, scope, owner, parseTimeout(request))
 
         response.setHeader(DavHeaders.LOCK_TOKEN, "<${lock.token}>")
-        writeXml(response, HttpStatus.OK.value(), DavXml.buildLockDiscovery(lock, hrefFor(path, node)))
+        val status = if (existed) HttpStatus.OK.value() else HttpStatus.CREATED.value()
+        writeXml(response, status, DavXml.buildLockDiscovery(lock, hrefFor(path, node)))
+    }
+
+    /** LOCK on an unmapped URL creates an empty "lock-null" resource (RFC 4918 section 7.3). */
+    private fun createLockNullResource(path: String): Boolean {
+        if (store.get(DavPath.parent(path)) !is DavCollection) {
+            return false
+        }
+
+        store.putFile(path, ByteArray(0), "application/octet-stream")
+        return true
     }
 
     private fun parseTimeout(request: HttpServletRequest): Duration {

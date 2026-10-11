@@ -5,6 +5,7 @@
   jdk25,
   podman-compose,
   postgresql_16,
+  litmus,
 }:
 
 mkShell {
@@ -13,6 +14,7 @@ mkShell {
     jdk25
     podman-compose
     postgresql_16
+    litmus
   ]
   ++ pre-commit.enabledPackages;
 

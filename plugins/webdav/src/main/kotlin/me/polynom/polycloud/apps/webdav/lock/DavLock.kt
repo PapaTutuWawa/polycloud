@@ -7,10 +7,16 @@ enum class LockDepth {
     INFINITY,
 }
 
+enum class LockScope {
+    EXCLUSIVE,
+    SHARED,
+}
+
 data class DavLock(
     val token: String,
     val path: String,
     val depth: LockDepth,
+    val scope: LockScope,
     val owner: String?,
     val expiresAt: Instant,
 ) {

@@ -2,6 +2,7 @@ package me.polynom.polycloud.apps.webdav.xml
 
 import me.polynom.polycloud.apps.webdav.lock.LockDepth
 import me.polynom.polycloud.apps.webdav.lock.LockManager
+import me.polynom.polycloud.apps.webdav.lock.LockScope
 import me.polynom.polycloud.apps.webdav.store.DavPropertyName
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -44,6 +45,23 @@ class DavXmlTest {
     }
 
     @Test
+    fun test_buildMultiStatus_emptyNamespaceProp_rendersUnprefixedWithoutAnIllegalXmlnsDeclaration() {
+        // `xmlns:foo=""` is illegal XML - an unnamespaced property must render with no prefix
+        // at all, relying on there being no default namespace declared on <D:multistatus>.
+        val entry =
+            DavResponseEntry(
+                href = "/dav/a.txt",
+                foundProps = mapOf(DavPropertyName("", "nonamespace") to "hello"),
+            )
+
+        val xml = DavXml.buildMultiStatus(listOf(entry))
+
+        assertTrue(xml.contains("<nonamespace>hello</nonamespace>"))
+        assertEquals(false, xml.contains("xmlns:ns1"))
+        assertEquals(false, xml.contains("xmlns=\"\""))
+    }
+
+    @Test
     fun test_buildMultiStatus_missingProps_areReportedAs404() {
         val entry =
             DavResponseEntry(
@@ -73,7 +91,7 @@ class DavXmlTest {
     @Test
     fun test_buildLockDiscovery_includesTokenDepthAndOwner() {
         val manager = LockManager()
-        val lock = manager.lock("/a", LockDepth.INFINITY, owner = "alice")
+        val lock = manager.lock("/a", LockDepth.INFINITY, scope = LockScope.EXCLUSIVE, owner = "alice")
 
         val xml = DavXml.buildLockDiscovery(lock, "/dav/a")
 
@@ -86,7 +104,7 @@ class DavXmlTest {
     @Test
     fun test_buildLockDiscovery_withoutOwner_omitsOwnerElement() {
         val manager = LockManager()
-        val lock = manager.lock("/a", LockDepth.ZERO, owner = null)
+        val lock = manager.lock("/a", LockDepth.ZERO, scope = LockScope.EXCLUSIVE, owner = null)
 
         val xml = DavXml.buildLockDiscovery(lock, "/dav/a")
 

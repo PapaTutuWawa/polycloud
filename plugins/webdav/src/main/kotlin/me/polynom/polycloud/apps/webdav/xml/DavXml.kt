@@ -2,6 +2,7 @@ package me.polynom.polycloud.apps.webdav.xml
 
 import me.polynom.polycloud.apps.webdav.lock.DavLock
 import me.polynom.polycloud.apps.webdav.lock.LockDepth
+import me.polynom.polycloud.apps.webdav.lock.LockScope
 import me.polynom.polycloud.apps.webdav.store.DavPropertyName
 import java.time.Duration
 import java.time.Instant
@@ -47,13 +48,14 @@ object DavXml {
         lockRootHref: String,
     ): String {
         val depthText = if (lock.depth == LockDepth.INFINITY) "infinity" else "0"
+        val scopeText = if (lock.scope == LockScope.SHARED) "shared" else "exclusive"
         val timeoutSeconds = Duration.between(Instant.now(), lock.expiresAt).seconds.coerceAtLeast(0)
         val ownerXml = lock.owner?.let { "<D:owner>${escapeXml(it)}</D:owner>" } ?: ""
 
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
             "<D:prop xmlns:D=\"DAV:\"><D:lockdiscovery><D:activelock>" +
             "<D:locktype><D:write/></D:locktype>" +
-            "<D:lockscope><D:exclusive/></D:lockscope>" +
+            "<D:lockscope><D:$scopeText/></D:lockscope>" +
             "<D:depth>$depthText</D:depth>" +
             ownerXml +
             "<D:timeout>Second-$timeoutSeconds</D:timeout>" +
@@ -86,12 +88,25 @@ object DavXml {
         namespaces: Map<String, String>,
         value: String?,
     ): String {
-        val prefix = namespaces[name.namespace] ?: "D"
+        val qualifiedName = qualifiedName(name, namespaces)
         return if (value.isNullOrEmpty()) {
-            "<$prefix:${name.localName}/>"
+            "<$qualifiedName/>"
         } else {
-            "<$prefix:${name.localName}>$value</$prefix:${name.localName}>"
+            "<$qualifiedName>$value</$qualifiedName>"
         }
+    }
+
+    /** RFC 4918's "no namespace" (an empty string) renders unprefixed - `xmlns:foo=""` is illegal XML. */
+    private fun qualifiedName(
+        name: DavPropertyName,
+        namespaces: Map<String, String>,
+    ): String {
+        if (name.namespace.isEmpty()) {
+            return name.localName
+        }
+
+        val prefix = namespaces[name.namespace] ?: "D"
+        return "$prefix:${name.localName}"
     }
 
     private fun collectNamespaces(entries: List<DavResponseEntry>): Map<String, String> {
@@ -99,7 +114,7 @@ object DavXml {
             entries
                 .flatMap { it.foundProps.keys + it.missingProps }
                 .map { it.namespace }
-                .filter { it != DAV_NAMESPACE }
+                .filter { it != DAV_NAMESPACE && it.isNotEmpty() }
                 .distinct()
                 .sorted()
 

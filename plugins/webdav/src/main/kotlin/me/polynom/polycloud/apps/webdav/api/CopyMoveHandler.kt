@@ -44,9 +44,7 @@ class CopyMoveHandler(
             throw DavException(HttpStatus.BAD_REQUEST.value(), "MOVE of a collection requires Depth: infinity")
         }
         validateDestination(request, path, destination)
-        if (lockManager.isLockedByOther(path, LockManager.parseIfHeaderTokens(request.getHeader(DavHeaders.IF)))) {
-            throw DavException(HttpStatus.LOCKED.value(), "Source is locked")
-        }
+        checkPrecondition(lockManager, request, path, sourceNode.etag)
 
         val replaced = store.move(path, destination)
         response.status = if (replaced) HttpStatus.NO_CONTENT.value() else HttpStatus.CREATED.value()
@@ -71,12 +69,11 @@ class CopyMoveHandler(
         }
 
         val overwrite = request.getHeader(DavHeaders.OVERWRITE)?.uppercase() != "F"
-        if (store.exists(destination) && !overwrite) {
+        val destinationNode = store.get(destination)
+        if (destinationNode != null && !overwrite) {
             throw DavException(HttpStatus.PRECONDITION_FAILED.value(), "Destination exists and Overwrite is F")
         }
-        if (lockManager.isLockedByOther(destination, LockManager.parseIfHeaderTokens(request.getHeader(DavHeaders.IF)))) {
-            throw DavException(HttpStatus.LOCKED.value(), "Destination is locked")
-        }
+        checkPrecondition(lockManager, request, destination, destinationNode?.etag)
     }
 
     private fun destinationPath(request: HttpServletRequest): String? {

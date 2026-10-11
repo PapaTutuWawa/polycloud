@@ -11,6 +11,7 @@ import me.polynom.polycloud.apps.webdav.xml.DavXml
 import me.polynom.polycloud.apps.webdav.xml.DavXmlParser
 import me.polynom.polycloud.apps.webdav.xml.LiveProperties
 import me.polynom.polycloud.apps.webdav.xml.PropfindRequest
+import me.polynom.polycloud.apps.webdav.xml.ProppatchOperation
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 
@@ -31,7 +32,7 @@ class PropertyHandler(
             return
         }
 
-        val propfindRequest = DavXmlParser.parsePropfind(readBody(request))
+        val propfindRequest = parseXmlBody { DavXmlParser.parsePropfind(readBody(request)) }
         val entries =
             collectTargets(path, node, request.getHeader(DavHeaders.DEPTH))
                 .map { (targetPath, targetNode) -> resolveProps(targetPath, targetNode, propfindRequest) }
@@ -49,16 +50,17 @@ class PropertyHandler(
             fail(response, HttpStatus.NOT_FOUND.value())
             return
         }
-        if (lockManager.isLockedByOther(path, LockManager.parseIfHeaderTokens(request.getHeader(DavHeaders.IF)))) {
-            fail(response, HttpStatus.LOCKED.value(), "Resource is locked")
-            return
+        checkPrecondition(lockManager, request, path, node.etag)
+
+        val proppatchRequest = parseXmlBody { DavXmlParser.parseProppatch(readBody(request)) }
+        proppatchRequest.operations.forEach { operation ->
+            when (operation) {
+                is ProppatchOperation.Set -> node.deadProperties[operation.name] = operation.value
+                is ProppatchOperation.Remove -> node.deadProperties.remove(operation.name)
+            }
         }
 
-        val proppatchRequest = DavXmlParser.parseProppatch(readBody(request))
-        proppatchRequest.sets.forEach { (name, value) -> node.deadProperties[name] = value }
-        proppatchRequest.removes.forEach { name -> node.deadProperties.remove(name) }
-
-        val changedNames = proppatchRequest.sets.map { it.first } + proppatchRequest.removes
+        val changedNames = proppatchRequest.operations.map { it.name }.distinct()
         val entry = DavResponseEntry(href = hrefFor(path, node), foundProps = changedNames.associateWith { "" })
         writeXml(response, HttpStatus.MULTI_STATUS.value(), DavXml.buildMultiStatus(listOf(entry)))
     }
