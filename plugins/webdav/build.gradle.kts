@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    kotlin("plugin.jpa")
 }
 
 group = "me.polynom"
@@ -20,10 +21,16 @@ dependencies {
     // Plugin types
     implementation(project(":pluginBase"))
 
+    // Data JPA
+    compileOnly("org.springframework.boot:spring-boot-starter-data-jpa:4.1.1")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa:4.1.1")
+
     // Testing
     testImplementation(kotlin("test"))
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc:4.1.1")
     testImplementation("org.springframework.boot:spring-boot-starter-test:4.1.1")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
+    testImplementation("org.mockito:mockito-core:5.23.0")
 }
 
 repositories {
