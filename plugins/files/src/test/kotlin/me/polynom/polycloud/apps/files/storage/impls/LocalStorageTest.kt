@@ -74,7 +74,7 @@ class LocalStorageTest : StorageTest<LocalStorage> {
         // that namespace to users at all.
         val storage = LocalStorage(StoragePath("/"), rootDir, true)
 
-        val upload = Upload(UUID.randomUUID(), 0L, "alice", "/pending-upload", 0L)
+        val upload = Upload(UUID.randomUUID(), 0L, "alice", StoragePath("/pending-upload"), 0L)
         storage.prepareUpload(upload)
         assertEquals(listOf(), storage.list("alice", StoragePath("/")))
         storage.finaliseUpload(upload)
@@ -105,7 +105,7 @@ class LocalStorageTest : StorageTest<LocalStorage> {
 
         val storage = LocalStorage(StoragePath("/"), rootDir, true)
 
-        val upload = Upload(UUID.randomUUID(), 0L, "alice", "/$uploadsFolder/evil.txt", 0L)
+        val upload = Upload(UUID.randomUUID(), 0L, "alice", StoragePath("/$uploadsFolder/evil.txt"), 0L)
         assertThrows<StorageQuotaException> {
             storage.prepareUpload(upload)
         }

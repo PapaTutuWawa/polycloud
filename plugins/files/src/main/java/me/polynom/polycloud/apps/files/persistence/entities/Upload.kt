@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import me.polynom.polycloud.apps.files.storage.StoragePath
 import java.util.UUID
 
 /**
@@ -24,7 +25,7 @@ class Upload(
     @Column(name = "\"user\"")
     var user: String,
     /** The file's intended storage location. */
-    var path: String,
+    var path: StoragePath,
     /** Bytes already uploaded */
     @Column(name = "\"offset\"")
     var offset: Long,

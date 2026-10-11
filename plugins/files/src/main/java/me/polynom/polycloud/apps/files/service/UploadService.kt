@@ -35,7 +35,7 @@ class UploadService(
         val entity =
             Upload(
                 user = user,
-                path = path.toString(),
+                path = path,
                 size = uploadLength,
                 offset = 0,
             )
@@ -48,7 +48,7 @@ class UploadService(
     fun deleteUpload(id: UUID) {
         // FIXME: exception
         val upload = uploadRepository.findById(id).orElseThrow { PathEmptyException("", StoragePath("")) }
-        val (storage, _) = storageService.resolveMount(StoragePath(upload.path))
+        val (storage, _) = storageService.resolveMount(upload.path)
         storage?.deleteUpload(upload)
         uploadRepository.delete(upload)
     }
@@ -75,9 +75,9 @@ class UploadService(
             throw PathEmptyException("", StoragePath(""))
         }
 
-        val (storage, _) = storageService.resolveMount(StoragePath(upload.path))
+        val (storage, _) = storageService.resolveMount(upload.path)
         // FIXME: exception
-        storage ?: throw PathEmptyException(upload.user, StoragePath(upload.path))
+        storage ?: throw PathEmptyException(upload.user, upload.path)
 
         body.use { body ->
             storage.continueUpload(upload, body)

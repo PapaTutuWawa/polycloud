@@ -60,7 +60,7 @@ class FilesService(
             throw PathEmptyException("", StoragePath(""))
         }
 
-        val (storage, _) = storageService.resolveMount(StoragePath(upload.path))
+        val (storage, _) = storageService.resolveMount(upload.path)
         // FIXME: user facing error
         storage ?: throw IllegalArgumentException("MOOP")
 
