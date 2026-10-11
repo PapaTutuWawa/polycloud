@@ -53,7 +53,7 @@ class LocalStorage(
         path: StoragePath,
     ): List<EntryMeta> {
         if (path.file) {
-            throw StorageWrongTypeException(path, true)
+            throw StorageWrongTypeException(path, false)
         }
 
         // Convert storage path to real file on the fs

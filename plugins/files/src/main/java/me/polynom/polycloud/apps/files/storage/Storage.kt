@@ -21,7 +21,7 @@ interface Storage {
      * @throws StoragePathDoesNotExistException if path does not exist.
      * @throws StorageWrongTypeException if path is a file.
      * @throws java.io.IOError on io errors.
-     * @return
+     * @return a list of metaobjects describing the files and directories.
      */
     fun list(
         user: String,

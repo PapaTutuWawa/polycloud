@@ -44,14 +44,16 @@ class StorageService(
         return Pair(null, path)
     }
 
-    fun listMounts(path: StoragePath): List<StoragePath> =
+    fun listMounts(path: StoragePath): Set<StoragePath> =
         mapper.keys
-            // Only mounts that are one level deeper may match
-            .filter { it.folderDepth() == path.folderDepth() + 1 }
-            .map { it.split(it.folderDepth() - 1) }
+            .asSequence()
+            // Only mounts that are at least one level deeper may match
+            .filter { it.folderDepth() >= path.folderDepth() + 1 }
+            .map { it.split(path.folderDepth()) }
             // Match mounts that are in the path's directory
             .filter { it.first == path.folder() }
             // Get that mounts name
-            .map { it.second }
-            .toList()
+            .map { StoragePath(it.second.components.take(1), false) }
+            // Deduplicate
+            .toSet()
 }
