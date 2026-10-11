@@ -30,6 +30,7 @@ dependencies {
     developmentOnly(project(":files"))
     developmentOnly(project(":stubAuth"))
     developmentOnly(project(":calendar"))
+    developmentOnly(project(":webdav"))
 
     // Allow generating OpenAPI specs
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")

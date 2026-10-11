@@ -27,6 +27,8 @@ class SecurityConfig {
                     // API Docs
                     AuthenticatedPath("/v3/**", authenticated = false),
                     AuthenticatedPath("/swagger-ui/**", authenticated = false),
+                    AuthenticatedPath("/dav", authenticated = false),
+                    AuthenticatedPath("/dav/**", authenticated = false),
                 ),
         )
 }

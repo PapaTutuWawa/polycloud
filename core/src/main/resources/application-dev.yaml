@@ -16,6 +16,8 @@ me:
             local:
         calendar:
           enabled: true
+        webdav:
+          enabled: true
       auth:
         jwt:
           secret: abc123

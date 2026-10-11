@@ -26,3 +26,7 @@ project(":files").projectDir = file("plugins/files")
 // Calendar
 include("calendar")
 project(":calendar").projectDir = file("plugins/calendar")
+
+// WebDAV
+include("webdav")
+project(":webdav").projectDir = file("plugins/webdav")

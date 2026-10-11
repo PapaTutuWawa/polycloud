@@ -1,6 +1,7 @@
 package me.polynom.polycloud.apps.files.persistence.entities
 
 import jakarta.persistence.Column
+import jakarta.persistence.Converter
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
