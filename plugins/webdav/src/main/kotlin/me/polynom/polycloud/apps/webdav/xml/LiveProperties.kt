@@ -31,7 +31,7 @@ object LiveProperties {
 
         when (node) {
             is DavFile -> {
-                properties[prop("getcontentlength")] = node.content.size.toString()
+                properties[prop("getcontentlength")] = node.resource.contentLength().toString()
                 properties[prop("getcontenttype")] = DavXml.escapeXml(node.contentType)
             }
 

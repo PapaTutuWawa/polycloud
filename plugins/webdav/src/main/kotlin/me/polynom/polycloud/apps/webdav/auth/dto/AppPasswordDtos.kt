@@ -1,21 +1,23 @@
 package me.polynom.polycloud.apps.webdav.auth.dto
 
-import java.time.Instant
-import java.util.UUID
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class CreateAppPasswordRequest(
     val name: String,
 )
 
+@Serializable
 data class CreateAppPasswordResponse(
-    val id: UUID,
+    val id: String,
     val name: String,
     /** The plaintext secret. Shown exactly once - it cannot be retrieved again after this response. */
     val secret: String,
 )
 
+@Serializable
 data class AppPasswordSummaryDto(
-    val id: UUID,
+    val id: String,
     val name: String,
-    val createdAt: Instant,
+    val createdAt: String,
 )

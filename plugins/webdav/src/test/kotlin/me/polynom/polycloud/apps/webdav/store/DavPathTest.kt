@@ -53,6 +53,16 @@ class DavPathTest {
     }
 
     @Test
+    fun test_components_nestedPath_splitsOnSlash() {
+        assertEquals(listOf("a", "b"), DavPath.components("/a/b"))
+    }
+
+    @Test
+    fun test_components_root_isEmpty() {
+        assertEquals(emptyList(), DavPath.components("/"))
+    }
+
+    @Test
     fun test_isAncestorOf_strictDescendant_isTrue() {
         assertTrue(DavPath.isAncestorOf("/a", "/a/b"))
     }

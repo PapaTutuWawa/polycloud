@@ -43,7 +43,7 @@ class CopyMoveHandlerTest {
 
         assertEquals(HttpStatus.CREATED.value(), response.status)
         assertTrue(store.exists("/a.txt"))
-        assertContentEquals("hello".toByteArray(), (store.get("/b.txt") as DavFile).content)
+        assertContentEquals("hello".toByteArray(), (store.get("/b.txt") as DavFile).resource.inputStream.readBytes())
     }
 
     @Test
@@ -136,7 +136,7 @@ class CopyMoveHandlerTest {
         handler.copy(request("COPY", "/a.txt", destination = "/b.txt"), response, "/a.txt")
 
         assertEquals(HttpStatus.NO_CONTENT.value(), response.status)
-        assertContentEquals("new".toByteArray(), (store.get("/b.txt") as DavFile).content)
+        assertContentEquals("new".toByteArray(), (store.get("/b.txt") as DavFile).resource.inputStream.readBytes())
     }
 
     @Test
@@ -162,7 +162,7 @@ class CopyMoveHandlerTest {
 
         assertEquals(HttpStatus.CREATED.value(), response.status)
         assertFalse(store.exists("/a.txt"))
-        assertContentEquals("hello".toByteArray(), (store.get("/b.txt") as DavFile).content)
+        assertContentEquals("hello".toByteArray(), (store.get("/b.txt") as DavFile).resource.inputStream.readBytes())
     }
 
     @Test

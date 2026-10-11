@@ -41,12 +41,9 @@ class FilesService(
         }
 
         // If we list a directory, also retrieve mount points in that path
-        val mounts =
-            storageService
-                .listMounts(path)
-                .map {
-                    EntryMeta(it.components.last(), true, null)
-                }.toSet()
+        val mounts = storageService.listMounts(path.folder()).map {
+            EntryMeta(it.components.last(), true, null)
+        }
 
         // If path resolves to a real storage backend, passthrough request
         val (storage, relPath) = storageService.resolveMount(path)

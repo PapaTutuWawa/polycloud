@@ -41,9 +41,9 @@ class ResourceHandler(
         when (node) {
             is DavFile -> {
                 response.contentType = node.contentType
-                response.setContentLength(node.content.size)
+                response.setContentLengthLong(node.resource.contentLength())
                 if (includeBody) {
-                    response.outputStream.write(node.content)
+                    node.resource.inputStream.use { it.copyTo(response.outputStream) }
                 }
             }
 

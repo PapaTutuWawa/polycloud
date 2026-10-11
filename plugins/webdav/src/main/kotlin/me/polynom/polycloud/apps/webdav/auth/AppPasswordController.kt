@@ -29,13 +29,15 @@ class AppPasswordController(
     ): CreateAppPasswordResponse {
         val user = userContext.getUser()!!
         val (appPassword, secret) = appPasswordService.create(user.username, request.name, user.roles)
-        return CreateAppPasswordResponse(appPassword.id, appPassword.name, secret)
+        return CreateAppPasswordResponse(appPassword.id.toString(), appPassword.name, secret)
     }
 
     @GetMapping
     fun list(): List<AppPasswordSummaryDto> {
         val user = userContext.getUser()!!
-        return appPasswordService.list(user.username).map { AppPasswordSummaryDto(it.id, it.name, it.createdAt) }
+        return appPasswordService.list(user.username).map {
+            AppPasswordSummaryDto(it.id.toString(), it.name, it.createdAt.toString())
+        }
     }
 
     @DeleteMapping("/{id}")

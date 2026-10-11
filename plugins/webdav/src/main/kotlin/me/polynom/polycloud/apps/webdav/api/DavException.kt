@@ -4,4 +4,5 @@ package me.polynom.polycloud.apps.webdav.api
 class DavException(
     val status: Int,
     message: String? = null,
-) : RuntimeException(message)
+    cause: Throwable? = null,
+) : RuntimeException(message, cause)

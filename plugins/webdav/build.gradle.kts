@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    kotlin("plugin.serialization")
     kotlin("plugin.jpa")
 }
 
@@ -20,6 +21,12 @@ dependencies {
 
     // Plugin types
     implementation(project(":pluginBase"))
+
+    // Serves files managed by the files plugin, per WebDav.md.
+    implementation(project(":files"))
+
+    // Serialization (request/response DTOs)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 
     // Data JPA
     compileOnly("org.springframework.boot:spring-boot-starter-data-jpa:4.1.1")

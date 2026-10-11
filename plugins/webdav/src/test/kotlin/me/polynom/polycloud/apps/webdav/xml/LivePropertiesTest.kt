@@ -4,6 +4,7 @@ import me.polynom.polycloud.apps.webdav.store.DavCollection
 import me.polynom.polycloud.apps.webdav.store.DavFile
 import me.polynom.polycloud.apps.webdav.store.DavPropertyName
 import org.junit.jupiter.api.Test
+import org.springframework.core.io.ByteArrayResource
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -11,7 +12,7 @@ import kotlin.test.assertTrue
 class LivePropertiesTest {
     @Test
     fun test_render_file_includesContentLengthAndType() {
-        val node = DavFile(content = "hello".toByteArray(), contentType = "text/plain")
+        val node = DavFile(resource = ByteArrayResource("hello".toByteArray()), contentType = "text/plain")
 
         val props = LiveProperties.render("/a.txt", node)
 
@@ -41,7 +42,7 @@ class LivePropertiesTest {
 
     @Test
     fun test_render_includesEtagMatchingNodeEtag() {
-        val node = DavFile(content = ByteArray(0), contentType = "text/plain")
+        val node = DavFile(resource = ByteArrayResource(ByteArray(0)), contentType = "text/plain")
 
         val props = LiveProperties.render("/a.txt", node)
 

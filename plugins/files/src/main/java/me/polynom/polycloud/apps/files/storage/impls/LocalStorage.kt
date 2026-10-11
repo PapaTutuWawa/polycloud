@@ -7,6 +7,7 @@ import me.polynom.polycloud.apps.files.persistence.entities.Upload
 import me.polynom.polycloud.apps.files.storage.EntryMeta
 import me.polynom.polycloud.apps.files.storage.Storage
 import me.polynom.polycloud.apps.files.storage.StoragePath
+import me.polynom.polycloud.apps.files.storage.StorageStat
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import java.io.BufferedOutputStream
@@ -17,7 +18,9 @@ import java.nio.file.AccessDeniedException
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
+import java.time.Instant
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
@@ -125,6 +128,128 @@ class LocalStorage(
         }
     }
 
+    override fun stat(
+        user: String,
+        path: StoragePath,
+    ): StorageStat? {
+        if (isUploadsPath(path)) {
+            return null
+        }
+
+        val fsPath = resolvePath(user, path)
+        return when {
+            fsPath.exists() -> realStat(fsPath)
+            // A non-shared backend's per-user root is lazily materialized on first write, just
+            // like prepareUpload()/finaliseUpload()/ensureParentExists() already treat it - it
+            // must still report as an existing, empty folder before that happens.
+            !shared && path.components.isEmpty() -> StorageStat(directory = true, size = null, lastModified = Instant.EPOCH)
+            else -> null
+        }
+    }
+
+    private fun realStat(fsPath: Path): StorageStat {
+        val isDirectory = fsPath.isDirectory()
+        return StorageStat(
+            directory = isDirectory,
+            size = if (isDirectory) null else fsPath.fileSize(),
+            lastModified = Files.getLastModifiedTime(fsPath).toInstant(),
+        )
+    }
+
+    override fun createDirectory(
+        user: String,
+        path: StoragePath,
+    ) {
+        val fsPath = resolvePath(user, path)
+        ensureParentExists(path, fsPath.parent)
+
+        Files.createDirectory(fsPath)
+    }
+
+    override fun copy(
+        user: String,
+        source: StoragePath,
+        destination: StoragePath,
+    ) {
+        val sourceFs = resolvePath(user, source)
+        val destinationFs = resolvePath(user, destination)
+        if (!sourceFs.exists()) {
+            throw StoragePathDoesNotExistException(source)
+        }
+        ensureParentExists(destination, destinationFs.parent)
+
+        if (sourceFs.isDirectory()) {
+            replaceExistingDestination(destinationFs)
+            copyRecursively(sourceFs, destinationFs)
+        } else {
+            Files.copy(sourceFs, destinationFs, StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
+
+    override fun move(
+        user: String,
+        source: StoragePath,
+        destination: StoragePath,
+    ) {
+        val sourceFs = resolvePath(user, source)
+        val destinationFs = resolvePath(user, destination)
+        if (!sourceFs.exists()) {
+            throw StoragePathDoesNotExistException(source)
+        }
+        ensureParentExists(destination, destinationFs.parent)
+
+        replaceExistingDestination(destinationFs)
+        Files.move(sourceFs, destinationFs, StandardCopyOption.REPLACE_EXISTING)
+    }
+
+    /**
+     * Like [prepareUpload]/[finaliseUpload], a non-shared backend's per-user root folder is
+     * materialized lazily on first use, not expected to already exist. Deeper intermediate
+     * folders, however, must already exist - callers get exactly one new level per call.
+     */
+    private fun ensureParentExists(
+        path: StoragePath,
+        parent: Path,
+    ) {
+        if (parent.exists()) {
+            return
+        }
+        if (!shared && path.components.size == 1) {
+            Files.createDirectories(parent)
+            return
+        }
+
+        throw StoragePathDoesNotExistException(path)
+    }
+
+    private fun replaceExistingDestination(destinationFs: Path) {
+        if (!destinationFs.exists()) {
+            return
+        }
+
+        if (destinationFs.isDirectory()) {
+            deleteFolderRecursively(destinationFs)
+        } else {
+            destinationFs.deleteExisting()
+        }
+    }
+
+    private fun copyRecursively(
+        source: Path,
+        destination: Path,
+    ) {
+        Files.walk(source).use { stream ->
+            stream.sorted().forEach { entry ->
+                val target = destination.resolve(source.relativize(entry))
+                if (entry.isDirectory()) {
+                    Files.createDirectories(target)
+                } else {
+                    Files.copy(entry, target, StandardCopyOption.REPLACE_EXISTING)
+                }
+            }
+        }
+    }
+
     override fun prepareUpload(upload: Upload) {
         val vfsPath = upload.path
         if (!upload.path.file) {
@@ -192,7 +317,7 @@ class LocalStorage(
         }
 
         Files.createDirectories(targetPath.parent)
-        Files.move(sourcePath, targetPath)
+        Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING)
     }
 
     override fun deleteUpload(upload: Upload) {

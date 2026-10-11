@@ -36,6 +36,9 @@ object DavPath {
         childName: String,
     ): String = if (parent == ROOT) "$ROOT$childName" else "$parent/$childName"
 
+    /** The non-empty `/`-separated segments of [path], e.g. `/a/b` -> `["a", "b"]`, `/` -> `[]`. */
+    fun components(path: String): List<String> = path.split("/").filter { it.isNotEmpty() }
+
     fun isAncestorOf(
         maybeAncestor: String,
         path: String,

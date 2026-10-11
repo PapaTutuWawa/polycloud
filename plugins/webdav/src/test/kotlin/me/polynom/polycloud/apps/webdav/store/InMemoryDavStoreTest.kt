@@ -23,7 +23,7 @@ class InMemoryDavStoreTest {
         val file = store.putFile("/a.txt", "hello".toByteArray(), "text/plain")
 
         assertTrue(store.exists("/a.txt"))
-        assertContentEquals("hello".toByteArray(), (store.get("/a.txt") as DavFile).content)
+        assertContentEquals("hello".toByteArray(), (store.get("/a.txt") as DavFile).resource.inputStream.readBytes())
         assertEquals("text/plain", file.contentType)
     }
 
@@ -34,7 +34,7 @@ class InMemoryDavStoreTest {
 
         store.putFile("/a.txt", "new".toByteArray(), "text/plain")
 
-        assertContentEquals("new".toByteArray(), (store.get("/a.txt") as DavFile).content)
+        assertContentEquals("new".toByteArray(), (store.get("/a.txt") as DavFile).resource.inputStream.readBytes())
     }
 
     @Test
@@ -100,7 +100,7 @@ class InMemoryDavStoreTest {
         val replaced = store.copy("/a.txt", "/b.txt")
 
         assertFalse(replaced)
-        assertContentEquals("hello".toByteArray(), (store.get("/b.txt") as DavFile).content)
+        assertContentEquals("hello".toByteArray(), (store.get("/b.txt") as DavFile).resource.inputStream.readBytes())
         assertTrue(store.exists("/a.txt"), "source must still exist after copy")
     }
 
@@ -113,7 +113,7 @@ class InMemoryDavStoreTest {
         store.copy("/a", "/b", shallow = false)
 
         assertTrue(store.get("/b") is DavCollection)
-        assertContentEquals("hi".toByteArray(), (store.get("/b/f.txt") as DavFile).content)
+        assertContentEquals("hi".toByteArray(), (store.get("/b/f.txt") as DavFile).resource.inputStream.readBytes())
     }
 
     @Test
@@ -138,7 +138,7 @@ class InMemoryDavStoreTest {
         val replaced = store.copy("/a.txt", "/old")
 
         assertTrue(replaced)
-        assertContentEquals("fresh".toByteArray(), (store.get("/old") as DavFile).content)
+        assertContentEquals("fresh".toByteArray(), (store.get("/old") as DavFile).resource.inputStream.readBytes())
         assertFalse(store.exists("/old/stale.txt"))
     }
 
@@ -161,7 +161,7 @@ class InMemoryDavStoreTest {
 
         assertFalse(replaced)
         assertFalse(store.exists("/a.txt"))
-        assertContentEquals("hello".toByteArray(), (store.get("/b.txt") as DavFile).content)
+        assertContentEquals("hello".toByteArray(), (store.get("/b.txt") as DavFile).resource.inputStream.readBytes())
     }
 
     @Test
@@ -175,7 +175,7 @@ class InMemoryDavStoreTest {
         assertFalse(store.exists("/a"))
         assertFalse(store.exists("/a/f.txt"))
         assertTrue(store.get("/b") is DavCollection)
-        assertContentEquals("hi".toByteArray(), (store.get("/b/f.txt") as DavFile).content)
+        assertContentEquals("hi".toByteArray(), (store.get("/b/f.txt") as DavFile).resource.inputStream.readBytes())
     }
 
     @Test

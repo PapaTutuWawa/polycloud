@@ -1,13 +1,14 @@
 package me.polynom.polycloud.apps.webdav.store
 
-import org.springframework.stereotype.Component
+import org.springframework.core.io.ByteArrayResource
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Thread-safe, in-memory [DavStore]. Entirely self-contained: nothing here talks to the
- * files plugin's FilesService/UploadService.
+ * Thread-safe, in-memory [DavStore]. Entirely self-contained: nothing here talks to the files
+ * plugin. Not a Spring bean - [me.polynom.polycloud.apps.webdav.store.FilesServiceDavStore] is
+ * the one registered against the real app; this is kept around for the webdav plugin's own
+ * fast, isolated protocol-surface tests.
  */
-@Component
 class InMemoryDavStore : DavStore {
     private val nodes = ConcurrentHashMap<String, DavNode>()
 
@@ -34,7 +35,7 @@ class InMemoryDavStore : DavStore {
         content: ByteArray,
         contentType: String,
     ): DavFile {
-        val file = DavFile(content = content, contentType = contentType)
+        val file = DavFile(resource = ByteArrayResource(content), contentType = contentType)
         nodes[path] = file
         return file
     }

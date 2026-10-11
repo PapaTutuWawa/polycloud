@@ -1,5 +1,6 @@
 package me.polynom.polycloud.apps.webdav.store
 
+import org.springframework.core.io.Resource
 import java.time.Instant
 import java.util.UUID
 
@@ -20,8 +21,12 @@ data class DavCollection(
     override val deadProperties: MutableMap<DavPropertyName, String> = mutableMapOf(),
 ) : DavNode
 
+/**
+ * [resource] is read lazily - a [DavFile] for a PROPFIND listing entry or an existence check
+ * never has to pull the whole file into memory, only [ResourceHandler.get]'s GET body does.
+ */
 data class DavFile(
-    val content: ByteArray,
+    val resource: Resource,
     val contentType: String,
     override val lastModified: Instant = Instant.now(),
     override val etag: String = newEtag(),

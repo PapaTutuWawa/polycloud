@@ -8,6 +8,7 @@ import me.polynom.polycloud.apps.files.persistence.entities.Upload
 import org.springframework.core.io.Resource
 import java.io.InputStream
 
+@Suppress("TooManyFunctions")
 interface Storage {
     /**
      * The path in the VFS where this backend is mounted.
@@ -97,6 +98,56 @@ interface Storage {
      * @throws java.io.IOError on io errors
      */
     fun deleteUpload(upload: Upload)
+
+    /**
+     * Probes [path] without assuming beforehand whether it is a file or a folder (unlike [list]
+     * and [read], which require the caller to already know). The `file` flag on [path] is ignored.
+     * @param user which user is probing the path.
+     * @param path backend-relative path to probe.
+     * @return metadata describing whatever is at [path], or null if nothing exists there.
+     */
+    fun stat(
+        user: String,
+        path: StoragePath,
+    ): StorageStat?
+
+    /**
+     * Creates an empty folder at [path].
+     * @param user which user is creating the folder.
+     * @param path backend-relative path of the new folder.
+     * @throws StoragePathDoesNotExistException if the parent folder does not exist.
+     * @throws StorageReadOnlyException if backend is read-only.
+     */
+    fun createDirectory(
+        user: String,
+        path: StoragePath,
+    )
+
+    /**
+     * Copies the file or folder (recursively) at [source] to [destination], within this backend.
+     * Any existing file/folder at [destination] is replaced.
+     * @param user which user is copying.
+     * @throws StoragePathDoesNotExistException if source, or destination's parent, does not exist.
+     * @throws StorageReadOnlyException if backend is read-only.
+     */
+    fun copy(
+        user: String,
+        source: StoragePath,
+        destination: StoragePath,
+    )
+
+    /**
+     * Moves the file or folder at [source] to [destination], within this backend. Any existing
+     * file/folder at [destination] is replaced.
+     * @param user which user is moving.
+     * @throws StoragePathDoesNotExistException if source, or destination's parent, does not exist.
+     * @throws StorageReadOnlyException if backend is read-only.
+     */
+    fun move(
+        user: String,
+        source: StoragePath,
+        destination: StoragePath,
+    )
 
     /**
      * Converts a path in the vfs to a relative path that the backend can use to manage files.
