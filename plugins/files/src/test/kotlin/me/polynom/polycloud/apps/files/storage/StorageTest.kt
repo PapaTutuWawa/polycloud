@@ -278,7 +278,7 @@ interface StorageTest<out T : Storage> {
         user: String,
         path: StoragePath,
         content: ByteArray,
-    ): Upload = Upload(UUID.randomUUID(), content.size.toLong(), user, path, 0L)
+    ): Upload = Upload(content.size.toLong(), user, path).apply { id = UUID.randomUUID() }
 
     @Test
     fun test_upload_simple() {
@@ -310,7 +310,7 @@ interface StorageTest<out T : Storage> {
     @Test
     fun test_upload_prepareShouldResetOffset() {
         val storage = createStorage()
-        val upload = Upload(UUID.randomUUID(), 8L, "test", StoragePath("/test.txt"), 5L)
+        val upload = Upload(8L, "test", StoragePath("/test.txt"), 5L).apply { id = UUID.randomUUID() }
         storage.prepareUpload(upload)
         assertEquals(0L, upload.offset)
     }

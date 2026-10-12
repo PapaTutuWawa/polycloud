@@ -15,10 +15,6 @@ import java.util.UUID
 @Entity
 @Table(name = "uploads")
 class Upload(
-    /** Primary key. */
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    var id: UUID? = null,
     /** Size of the file that is being uploaded. */
     var size: Long,
     /** The user uploading the file. */
@@ -28,7 +24,12 @@ class Upload(
     var path: StoragePath,
     /** Bytes already uploaded */
     @Column(name = "\"offset\"")
-    var offset: Long,
+    var offset: Long = 0L,
 ) {
+    /** Primary key. */
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    var id: UUID? = null
+
     fun done() = offset >= size
 }

@@ -37,7 +37,6 @@ class UploadService(
                 user = user,
                 path = path,
                 size = uploadLength,
-                offset = 0,
             )
         uploadRepository.save(entity)
 

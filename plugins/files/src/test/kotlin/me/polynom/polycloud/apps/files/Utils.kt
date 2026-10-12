@@ -10,12 +10,10 @@ object Utils {
         path: StoragePath,
         content: ByteArray,
     ) = Upload(
-        UUID.randomUUID(),
         content.size.toLong(),
         user,
         path,
-        offset = 0L,
-    )
+    ).apply { id = UUID.randomUUID() }
 
     fun String.into() = StoragePath(this)
 }
