@@ -5,7 +5,7 @@ import me.polynom.polycloud.apps.files.api.dto.TusUploadMetadata
 import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.files.constants.TusConstants
 import me.polynom.polycloud.apps.files.constants.TusHeaders
-import me.polynom.polycloud.apps.files.exceptions.InvalidUploadMetadataException
+import me.polynom.polycloud.apps.files.exceptions.TusInvalidUploadMetadataException
 import me.polynom.polycloud.apps.files.persistence.entities.Upload
 import me.polynom.polycloud.apps.files.service.UploadService
 import me.polynom.polycloud.apps.files.storage.StoragePath
@@ -40,8 +40,8 @@ class FilesUploadApiController(
         metadata: TusUploadMetadata,
     ): ResponseEntity<Unit> {
         // FIXME: validate user :) permissions? yes, we don't have 'em
-        val user = metadata["user"] ?: throw InvalidUploadMetadataException("No user provided in metadata")
-        val rawPath = metadata["path"] ?: throw InvalidUploadMetadataException("No path provided in metadata")
+        val user = metadata["user"] ?: throw TusInvalidUploadMetadataException("No user provided in metadata")
+        val rawPath = metadata["path"] ?: throw TusInvalidUploadMetadataException("No path provided in metadata")
         val path = StoragePath(rawPath)
 
         val upload = uploadService.createUpload(Upload(uploadLength, user, path))

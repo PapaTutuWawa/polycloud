@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletResponse
 import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.files.constants.TusConstants
 import me.polynom.polycloud.apps.files.constants.TusHeaders
-import me.polynom.polycloud.apps.files.exceptions.WrongTusVersionException
+import me.polynom.polycloud.apps.files.exceptions.TusWrongVersionException
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -28,7 +28,7 @@ class TusVersionHeaders {
         // If the client did not send that exact version, throw
         val clientVersion = request.getHeader(TusHeaders.TUS_RESUMABLE) ?: ""
         if (clientVersion != TusConstants.TUS_VERSION) {
-            throw WrongTusVersionException(clientVersion)
+            throw TusWrongVersionException(clientVersion)
         }
     }
 }

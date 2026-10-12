@@ -2,7 +2,7 @@ package me.polynom.polycloud.apps.files.converters
 
 import me.polynom.polycloud.apps.files.api.dto.TusUploadMetadata
 import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
-import me.polynom.polycloud.apps.files.exceptions.InvalidUploadMetadataException
+import me.polynom.polycloud.apps.files.exceptions.TusInvalidUploadMetadataException
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 import java.util.Base64
@@ -21,20 +21,20 @@ class UploadMetadataConverter : Converter<String, TusUploadMetadata> {
         for (rawPair in source.split(",")) {
             val pair = rawPair.trim()
             if (pair.isEmpty()) {
-                throw InvalidUploadMetadataException("empty key-value pair")
+                throw TusInvalidUploadMetadataException("empty key-value pair")
             }
 
             val parts = pair.split(" ")
             if (parts.size > 2) {
-                throw InvalidUploadMetadataException("pair $parts contains multiple whitespaces")
+                throw TusInvalidUploadMetadataException("pair $parts contains multiple whitespaces")
             }
 
             val key = parts[0]
             if (!key.matches(keyRegex)) {
-                throw InvalidUploadMetadataException("key '$key' must be non-empty ASCII without whitespace or commas")
+                throw TusInvalidUploadMetadataException("key '$key' must be non-empty ASCII without whitespace or commas")
             }
             if (result.containsKey(key)) {
-                throw InvalidUploadMetadataException("duplicate key '$key'")
+                throw TusInvalidUploadMetadataException("duplicate key '$key'")
             }
 
             val encodedValue = parts.getOrNull(1)?.trim()
@@ -45,7 +45,7 @@ class UploadMetadataConverter : Converter<String, TusUploadMetadata> {
                     try {
                         decoder.decode(encodedValue).toString(Charsets.UTF_8)
                     } catch (e: IllegalArgumentException) {
-                        throw InvalidUploadMetadataException("value for key '$key' is not valid Base64 or does not contain valid UTF-8.")
+                        throw TusInvalidUploadMetadataException("value for key '$key' is not valid Base64 or does not contain valid UTF-8.")
                     }
                 }
 
