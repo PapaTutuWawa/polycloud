@@ -6,11 +6,11 @@ import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.files.constants.TusConstants
 import me.polynom.polycloud.apps.files.constants.TusHeaders
 import me.polynom.polycloud.apps.files.exceptions.InvalidUploadMetadataException
+import me.polynom.polycloud.apps.files.persistence.entities.Upload
 import me.polynom.polycloud.apps.files.service.UploadService
 import me.polynom.polycloud.apps.files.storage.StoragePath
 import org.springframework.http.CacheControl
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -38,9 +38,18 @@ class FilesUploadApiController(
         uploadLength: Long,
         @RequestHeader(TusHeaders.UPLOAD_METADATA)
         metadata: TusUploadMetadata,
-    ) = ResponseEntity
-        .created(uploadService.createUpload(uploadLength, metadata))
-        .build<Unit>()
+    ): ResponseEntity<Unit> {
+        // FIXME: validate user :) permissions? yes, we don't have 'em
+        val user = metadata["user"] ?: throw InvalidUploadMetadataException("No user provided in metadata")
+        val rawPath = metadata["path"] ?: throw InvalidUploadMetadataException("No path provided in metadata")
+        val path = StoragePath(rawPath)
+
+        val upload = uploadService.createUpload(Upload(uploadLength, user, path))
+
+        return ResponseEntity
+            .created(URI("/api/apps/files/upload/${upload.id!!}"))
+            .build<Unit>()
+    }
 
     @RequestMapping("/upload", method = [RequestMethod.OPTIONS])
     fun optUpload(): ResponseEntity<Unit> =
@@ -74,7 +83,7 @@ class FilesUploadApiController(
         // FIXME: validate offset value is as expected (otherwise 409 Conflicted)
         ResponseEntity
             .noContent()
-            .header(TusHeaders.UPLOAD_OFFSET, uploadService.patchUpload(slot, offset, body).toString())
+            .header(TusHeaders.UPLOAD_OFFSET, uploadService.continueUpload(slot, offset, body).toString())
             .build()
 
     @DeleteMapping("/upload/{slot}")

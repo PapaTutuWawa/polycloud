@@ -4,6 +4,9 @@ import me.polynom.polycloud.apps.files.api.dto.TusUploadMetadata
 import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
 import me.polynom.polycloud.apps.files.exceptions.InvalidUploadMetadataException
 import me.polynom.polycloud.apps.files.exceptions.PathEmptyException
+import me.polynom.polycloud.apps.files.exceptions.StoragePathDoesNotExistException
+import me.polynom.polycloud.apps.files.exceptions.UploadDoesNotExistException
+import me.polynom.polycloud.apps.files.exceptions.UploadWrongOffsetException
 import me.polynom.polycloud.apps.files.persistence.entities.Upload
 import me.polynom.polycloud.apps.files.persistence.repository.UploadRepository
 import me.polynom.polycloud.apps.files.storage.StoragePath
@@ -18,65 +21,81 @@ class UploadService(
     val uploadRepository: UploadRepository,
     val storageService: StorageService,
 ) {
-    @Suppress("ThrowsCount")
-    fun createUpload(
-        uploadLength: Long,
-        metadata: TusUploadMetadata,
-    ): URI {
-        // FIXME: validate user :) permissions? yes, we don't have 'em
-        val user = metadata["user"] ?: throw InvalidUploadMetadataException("No user provided in metadata")
-        val rawPath = metadata["path"] ?: throw InvalidUploadMetadataException("No path provided in metadata")
-        // Convert to StoragePath for validation
-        val path = StoragePath(rawPath)
+    /**
+     * Registers/Creates a new upload in the database and prepares the storage backends to receive data.
+     * @param upload the newly created upload object to be prepared and saved in db.
+     * @throws StoragePathDoesNotExistException if path points to no storage backend.
+     * @throws * any exceptions defined in {@link Storage#prepareUpload}
+     * @return the new upload object.
+     */
+    fun createUpload(upload: Upload): Upload {
+        val (storage, _) = storageService.resolveMount(upload.path)
+        storage ?: throw StoragePathDoesNotExistException(upload.path)
 
-        val (storage, _) = storageService.resolveMount(path)
-        storage ?: throw PathEmptyException(user, path)
-
-        val entity =
-            Upload(
-                user = user,
-                path = path,
-                size = uploadLength,
-            )
-        uploadRepository.save(entity)
-
-        storage.prepareUpload(entity)
-        return URI("/api/apps/files/upload/${entity.id!!}")
+        val ret = uploadRepository.save(upload)
+        storage.prepareUpload(upload)
+        return ret
     }
 
+    /**
+     * Delete this upload object.
+     * If the storage backend of the upload silently disappeared between restarts
+     * this method won't fail and just deletes the db entry of the upload.
+     * @param id of the upload.
+     * @throws UploadDoesNotExistException if id is an invalid upload id.
+     * @throws * any exceptions defined in {@link Storage#deleteUpload}
+     */
     fun deleteUpload(id: UUID) {
-        // FIXME: exception
-        val upload = uploadRepository.findById(id).orElseThrow { PathEmptyException("", StoragePath("")) }
+        val upload =
+            uploadRepository.findById(id).orElseThrow {
+                UploadDoesNotExistException(id)
+            }
         val (storage, _) = storageService.resolveMount(upload.path)
         storage?.deleteUpload(upload)
         uploadRepository.delete(upload)
     }
 
+    /**
+     * Retrieves the offset the specified upload.
+     * New upload data should be sent starting from this offset.
+     * @param id of the upload.
+     * @throws UploadDoesNotExistException if id is an invalid upload id.
+     * @return the current byte offset of the upload.
+     */
     fun retrieveOffset(id: UUID): Long {
-        // FIXME: better exception
         val upload =
             uploadRepository.findById(id).orElseThrow {
-                PathEmptyException("", StoragePath(""))
+                UploadDoesNotExistException(id)
             }
-
         return upload.offset
     }
 
-    fun patchUpload(
+    /**
+     * Continues a file upload at a specified offset.
+     * @param id of the upload to continue.
+     * @param offset byte-offset to start data upload at.
+     * @param body the actual data.
+     * @throws UploadDoesNotExistException if id is an invalid upload id.
+     * @throws UploadWrongOffsetException if the provided offset does not match the expected byte offset.
+     * @throws StoragePathDoesNotExistException if the storage backend of the upload disappeared.
+     * @throws * any exceptions defined in {@link Storage#continueUpload}
+     * @return the new byte-offset for future data uploads, i.e. an indication how many byte where committed to storage.
+     */
+    fun continueUpload(
         id: UUID,
         offset: Long,
         body: InputStream,
     ): Long {
-        // FIXME: exception
-        val upload = uploadRepository.findById(id).orElseThrow { PathEmptyException("", StoragePath("")) }
+        val upload =
+            uploadRepository.findById(id).orElseThrow {
+                throw UploadDoesNotExistException(id)
+            }
         if (upload.offset != offset) {
-            // FIXME: exception
-            throw PathEmptyException("", StoragePath(""))
+            throw UploadWrongOffsetException(upload, offset)
         }
 
         val (storage, _) = storageService.resolveMount(upload.path)
-        // FIXME: exception
-        storage ?: throw PathEmptyException(upload.user, upload.path)
+        storage ?: throw StoragePathDoesNotExistException(upload.path)
 
         body.use { body ->
             storage.continueUpload(upload, body)

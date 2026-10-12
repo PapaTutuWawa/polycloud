@@ -94,9 +94,10 @@ class FilesService(
      * @throws * any exceptions defined in {@link Storage#finaliseUpload}
      */
     fun finaliseUpload(slot: UUID) {
-        val upload = uploadRepository.findById(slot).orElseThrow {
-            UploadDoesNotExistException(slot)
-        }
+        val upload =
+            uploadRepository.findById(slot).orElseThrow {
+                UploadDoesNotExistException(slot)
+            }
 
         if (!upload.done()) {
             throw UploadIncompleteException(upload)

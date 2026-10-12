@@ -229,7 +229,7 @@ class FilesServiceTest {
 
     @Test
     fun test_finishUpload_throwOnNotDoneUpload() {
-        val upload = Upload(8L, "bob", "/file.txt".into(), offset=2L).apply { id = UUID.randomUUID() }
+        val upload = Upload(8L, "bob", "/file.txt".into(), offset = 2L).apply { id = UUID.randomUUID() }
         whenever(uploadRepository.findById(upload.id!!))
             .thenReturn(Optional.of(upload))
 
@@ -240,7 +240,7 @@ class FilesServiceTest {
 
     @Test
     fun test_finishUpload_throwOnNullBackend() {
-        val upload = Upload(8L, "bob", "/test.md".into(), offset=8L).apply { id = UUID.randomUUID() }
+        val upload = Upload(8L, "bob", "/test.md".into(), offset = 8L).apply { id = UUID.randomUUID() }
         whenever(uploadRepository.findById(upload.id!!))
             .thenReturn(Optional.of(upload))
 
@@ -254,7 +254,7 @@ class FilesServiceTest {
 
     @Test
     fun test_finishUpload_success() {
-        val upload = Upload(8L, "bob", "/test.md".into(), offset=8L).apply { id = UUID.randomUUID() }
+        val upload = Upload(8L, "bob", "/test.md".into(), offset = 8L).apply { id = UUID.randomUUID() }
         whenever(uploadRepository.findById(upload.id!!))
             .thenReturn(Optional.of(upload))
 
