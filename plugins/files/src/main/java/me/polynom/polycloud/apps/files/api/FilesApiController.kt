@@ -27,7 +27,7 @@ class FilesApiController(
     val entryMetaMapper: EntryMetaMapper,
 ) {
     @GetMapping("/users/{user}/{*path}")
-    fun listFiles(
+    fun list(
         @PathVariable("user") user: String,
         @PathVariable("path") path: StoragePath,
     ) = filesService.list(user, path).map { entryMetaMapper.entryMetaToEntryMetaDto(it) }
@@ -39,7 +39,7 @@ class FilesApiController(
     ) = filesService.delete(user, path)
 
     @PutMapping("/users/{user}/{*path}")
-    fun putFile(
+    fun finaliseUpload(
         @RequestBody slot: UploadSlotDto,
     ) = filesService.finaliseUpload(UUID.fromString(slot.slot))
 

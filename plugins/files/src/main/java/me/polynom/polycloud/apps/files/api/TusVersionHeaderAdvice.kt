@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice(assignableTypes = [FilesUploadApiController::class])
 @PluginEnabled
-class TusVersionHeaders {
+class TusVersionHeaderAdvice {
     @ModelAttribute
     fun checkTusVersion(
         request: HttpServletRequest,
