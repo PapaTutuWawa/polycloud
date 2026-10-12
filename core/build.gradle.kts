@@ -1,23 +1,8 @@
 import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
-    kotlin("jvm")
-    kotlin("plugin.spring")
-    id("org.springframework.boot") version "4.1.1"
-    id("io.spring.dependency-management") version "1.1.7"
-}
-
-group = "me.polynom"
-version = "0.0.1-SNAPSHOT"
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
-}
-
-repositories {
-    mavenCentral()
+    id("me.polynom.common")
+    id("org.springframework.boot")
 }
 
 dependencies {
@@ -52,27 +37,6 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation(kotlin("test"))
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
-}
-
-// Spring's dependency-management plugin force-aligns every configuration (including
-// detekt's isolated analysis classpath) to the project's Kotlin stdlib version, but
-// detekt ships its own embedded compiler and refuses to run against a mismatched one.
-configurations.matching { it.name.startsWith("detekt") }.configureEach {
-    resolutionStrategy.eachDependency {
-        if (requested.group == "org.jetbrains.kotlin") {
-            useVersion("2.4.10")
-        }
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }
 
 tasks.withType<BootRun> {

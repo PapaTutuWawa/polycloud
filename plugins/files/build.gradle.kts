@@ -1,16 +1,6 @@
 plugins {
-    kotlin("jvm")
-    id("org.jetbrains.kotlin.kapt")
+    id("me.polynom.common")
     kotlin("plugin.jpa")
-}
-
-group = "me.polynom"
-version = "0.0.1-SNAPSHOT"
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
 }
 
 dependencies {
@@ -42,18 +32,4 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
     testImplementation("org.mockito:mockito-core:5.23.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test:4.1.1")
-}
-
-repositories {
-    mavenCentral()
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }

@@ -1,5 +1,9 @@
 rootProject.name = "polycloud"
 
+pluginManagement {
+    includeBuild("build-logic")
+}
+
 // Add submodules
 include("core")
 

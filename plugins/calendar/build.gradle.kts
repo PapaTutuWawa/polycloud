@@ -1,17 +1,6 @@
 plugins {
-    kotlin("jvm")
-    kotlin("plugin.serialization")
-    id("org.jetbrains.kotlin.kapt")
-    id("org.jetbrains.kotlin.plugin.jpa")
-}
-
-group = "me.polynom"
-version = "0.0.1-SNAPSHOT"
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
+    id("me.polynom.common")
+    kotlin("plugin.jpa")
 }
 
 dependencies {
@@ -23,7 +12,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-autoconfigure:4.1.1")
 
     // Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    implementation("tools.jackson.module:jackson-module-kotlin:3.2.+")
 
     // OpenAPI
     compileOnly("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
@@ -45,18 +34,4 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
     testImplementation("org.mockito:mockito-core:5.23.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test:4.1.1")
-}
-
-repositories {
-    mavenCentral()
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }

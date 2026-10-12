@@ -1,12 +1,5 @@
 plugins {
-    kotlin("jvm")
-}
-
-group = "me.polynom.polycloud.apps.auth.stub"
-version = "0.1.0"
-
-repositories {
-    mavenCentral()
+    id("me.polynom.common")
 }
 
 dependencies {
@@ -20,12 +13,4 @@ dependencies {
     implementation(project(":pluginBase"))
 
     testImplementation(kotlin("test"))
-}
-
-kotlin {
-    jvmToolchain(25)
-}
-
-tasks.test {
-    useJUnitPlatform()
 }

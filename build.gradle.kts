@@ -1,13 +1,12 @@
 plugins {
-    kotlin("jvm") apply false
-    kotlin("plugin.serialization") version "2.4.20" apply false
-    kotlin("plugin.spring") version "2.4.20" apply false
-    kotlin("plugin.jpa") version "2.4.20" apply false
-    id("org.jetbrains.kotlin.kapt") apply false
-}
-
-allprojects {
-    apply(plugin = "common")
+    kotlin("jvm") version "2.4.21" apply false
+    kotlin("kapt") version "2.4.21" apply false
+    id("dev.detekt") version "2.0.0-alpha.6" apply false
+    id("com.diffplug.spotless") version "8.10.2" apply false
+    id("org.springframework.boot") version "4.1.1" apply false
+    id("io.spring.dependency-management") version "1.1.7" apply false
+    kotlin("plugin.spring") version "2.4.21" apply false
+    kotlin("plugin.jpa") version "2.4.21" apply false
 }
 
 tasks.register("run-core") {

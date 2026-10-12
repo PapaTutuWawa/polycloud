@@ -1,15 +1,5 @@
 plugins {
-    kotlin("jvm")
-    kotlin("plugin.serialization")
-}
-
-group = "me.polynom"
-version = "0.0.1-SNAPSHOT"
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
+    id("me.polynom.common")
 }
 
 dependencies {
@@ -31,14 +21,4 @@ dependencies {
     implementation("com.auth0:java-jwt:4.6.0")
     implementation("com.auth0:jwks-rsa:0.24.1")
     testImplementation(kotlin("test"))
-}
-
-repositories {
-    mavenCentral()
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
 }
