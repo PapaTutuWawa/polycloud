@@ -1,9 +1,10 @@
 package me.polynom.polycloud.apps.files.service
 
 import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
-import me.polynom.polycloud.apps.files.exceptions.PathEmptyException
 import me.polynom.polycloud.apps.files.exceptions.StoragePathDoesNotExistException
 import me.polynom.polycloud.apps.files.exceptions.StorageWrongTypeException
+import me.polynom.polycloud.apps.files.exceptions.UploadDoesNotExistException
+import me.polynom.polycloud.apps.files.exceptions.UploadIncompleteException
 import me.polynom.polycloud.apps.files.persistence.repository.UploadRepository
 import me.polynom.polycloud.apps.files.storage.EntryMeta
 import me.polynom.polycloud.apps.files.storage.Storage
@@ -84,17 +85,25 @@ class FilesService(
         return storage.read(user, relPath)
     }
 
-    fun putFile(slot: UUID) {
-        // FIXME: exception
-        val upload = uploadRepository.findById(slot).orElseThrow { PathEmptyException("", StoragePath("")) }
+    /**
+     * Finalizes an upload by putting the uploaded file in the correct place.
+     * @param slot the UUID of the upload to finalize.
+     * @throws UploadDoesNotExistException if slot is not a valid upload.
+     * @throws UploadIncompleteException if the upload has not received all data yet.
+     * @throws StoragePathDoesNotExistException if path is on no backend.
+     * @throws * any exceptions defined in {@link Storage#finaliseUpload}
+     */
+    fun finaliseUpload(slot: UUID) {
+        val upload = uploadRepository.findById(slot).orElseThrow {
+            UploadDoesNotExistException(slot)
+        }
+
         if (!upload.done()) {
-            // FIXME: exception
-            throw PathEmptyException("", StoragePath(""))
+            throw UploadIncompleteException(upload)
         }
 
         val (storage, _) = storageService.resolveMount(upload.path)
-        // FIXME: user facing error
-        storage ?: throw IllegalArgumentException("MOOP")
+        storage ?: throw StoragePathDoesNotExistException(upload.path)
 
         storage.finaliseUpload(upload)
         uploadRepository.delete(upload)

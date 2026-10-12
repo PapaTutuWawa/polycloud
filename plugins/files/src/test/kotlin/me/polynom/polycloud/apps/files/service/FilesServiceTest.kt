@@ -1,28 +1,26 @@
 package me.polynom.polycloud.apps.files.service
 
-import me.polynom.polycloud.apps.files.Utils
-import me.polynom.polycloud.apps.files.Utils.createUpload
 import me.polynom.polycloud.apps.files.Utils.into
 import me.polynom.polycloud.apps.files.exceptions.StoragePathDoesNotExistException
-import me.polynom.polycloud.apps.files.exceptions.StorageReadOnlyException
 import me.polynom.polycloud.apps.files.exceptions.StorageWrongTypeException
+import me.polynom.polycloud.apps.files.exceptions.UploadDoesNotExistException
+import me.polynom.polycloud.apps.files.exceptions.UploadIncompleteException
+import me.polynom.polycloud.apps.files.persistence.entities.Upload
 import me.polynom.polycloud.apps.files.persistence.repository.UploadRepository
 import me.polynom.polycloud.apps.files.storage.EntryMeta
 import me.polynom.polycloud.apps.files.storage.Storage
-import me.polynom.polycloud.apps.files.storage.StoragePath
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
-import org.mockito.Mockito.mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
-import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
-import org.mockito.verification.VerificationMode
 import org.springframework.core.io.ByteArrayResource
+import java.util.Optional
+import java.util.UUID
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
@@ -219,15 +217,55 @@ class FilesServiceTest {
         verifyNoInteractions(uploadRepository)
     }
 
-    /*@Test
-    fun test_put_simple() {
-        val content = "Cool file contents".toByteArray()
-        val upload = Utils.createUpload("bob", "/file.md".into(), content)
-        whenever(uploadRepository.findById(upload.id!!)).thenReturn(upload)
-        whenever()
-    }*/
+    @Test
+    fun test_finishUpload_throwOnNonExistentUpload() {
+        whenever(uploadRepository.findById(any()))
+            .thenReturn(Optional.empty())
 
-    // TODO: putFile
+        assertThrows<UploadDoesNotExistException> {
+            filesService.finaliseUpload(UUID.randomUUID())
+        }
+    }
+
+    @Test
+    fun test_finishUpload_throwOnNotDoneUpload() {
+        val upload = Upload(8L, "bob", "/file.txt".into(), offset=2L).apply { id = UUID.randomUUID() }
+        whenever(uploadRepository.findById(upload.id!!))
+            .thenReturn(Optional.of(upload))
+
+        assertThrows<UploadIncompleteException> {
+            filesService.finaliseUpload(upload.id!!)
+        }
+    }
+
+    @Test
+    fun test_finishUpload_throwOnNullBackend() {
+        val upload = Upload(8L, "bob", "/test.md".into(), offset=8L).apply { id = UUID.randomUUID() }
+        whenever(uploadRepository.findById(upload.id!!))
+            .thenReturn(Optional.of(upload))
+
+        whenever(storageService.resolveMount(upload.path))
+            .thenReturn(Pair(null, "/test.md".into()))
+
+        assertThrows<StoragePathDoesNotExistException> {
+            filesService.finaliseUpload(upload.id!!)
+        }
+    }
+
+    @Test
+    fun test_finishUpload_success() {
+        val upload = Upload(8L, "bob", "/test.md".into(), offset=8L).apply { id = UUID.randomUUID() }
+        whenever(uploadRepository.findById(upload.id!!))
+            .thenReturn(Optional.of(upload))
+
+        whenever(storageService.resolveMount(upload.path))
+            .thenReturn(Pair(storage, "/test.md".into()))
+
+        filesService.finaliseUpload(upload.id!!)
+
+        verify(storage).finaliseUpload(upload)
+        verify(uploadRepository).delete(upload)
+    }
 
     @Test
     fun test_delete_simple() {
