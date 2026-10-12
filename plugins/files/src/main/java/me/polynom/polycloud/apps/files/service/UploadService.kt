@@ -1,20 +1,18 @@
 package me.polynom.polycloud.apps.files.service
 
-import me.polynom.polycloud.apps.files.api.dto.TusUploadMetadata
 import me.polynom.polycloud.apps.files.autoconfigure.PluginEnabled
-import me.polynom.polycloud.apps.files.exceptions.InvalidUploadMetadataException
-import me.polynom.polycloud.apps.files.exceptions.PathEmptyException
 import me.polynom.polycloud.apps.files.exceptions.StoragePathDoesNotExistException
 import me.polynom.polycloud.apps.files.exceptions.UploadDoesNotExistException
 import me.polynom.polycloud.apps.files.exceptions.UploadWrongOffsetException
 import me.polynom.polycloud.apps.files.persistence.entities.Upload
 import me.polynom.polycloud.apps.files.persistence.repository.UploadRepository
-import me.polynom.polycloud.apps.files.storage.StoragePath
 import org.springframework.stereotype.Service
 import java.io.InputStream
-import java.net.URI
 import java.util.UUID
 
+/**
+ * Manages resumable uploads and tracks current upload progress in database.
+ */
 @Service
 @PluginEnabled
 class UploadService(

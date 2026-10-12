@@ -13,6 +13,10 @@ import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
 import java.util.UUID
 
+/**
+ * Manages files at VFS level by delegating operations to
+ * appropriate storage backends depending on which backend a path lies.
+ */
 @Component
 @PluginEnabled
 class FilesService(

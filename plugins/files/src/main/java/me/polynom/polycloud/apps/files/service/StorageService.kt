@@ -8,6 +8,12 @@ import me.polynom.polycloud.apps.files.storage.impls.LocalStorage
 import org.springframework.stereotype.Component
 import kotlin.math.min
 
+/**
+ * Manages the paths where certain storage backends are mounted.
+ * Contains main-logic to convert between vfs path <-> backend + rel-path.
+ * Makes sure that storage backends are reachable via VFS even
+ * if toplevel backends do not provide folders to reach nested backend.
+ */
 @Component
 @PluginEnabled
 class StorageService(
@@ -29,6 +35,12 @@ class StorageService(
         return mapper
     }
 
+    /**
+     * Resolves a vfs path to a specific storage backend and a backend-relative path.
+     * This matching is greedy, so a path is always matched to the deepest possible backend mount.
+     * @path the vfs path to resolve to a backend.
+     * @return the storage backend if found and a backend-relative path.
+     */
     fun resolveMount(path: StoragePath): Pair<Storage?, StoragePath> {
         var d = min(path.folderDepth(), maxDepth)
         while (d >= 0) {
@@ -44,6 +56,13 @@ class StorageService(
         return Pair(null, path)
     }
 
+    /**
+     * Lists all mounted storage backends below the specified path
+     * and returns the path of all folders that need to exist at
+     * that level such that each backend mount is reachable in the vfs.
+     * @param path the vfs path to list mounts in.
+     * @return set of folders at path which need to exist for mount navigability/reachability.
+     */
     fun listMounts(path: StoragePath): Set<StoragePath> =
         mapper.keys
             .asSequence()
