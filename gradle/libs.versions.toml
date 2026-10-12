@@ -1,0 +1,20 @@
+[versions]
+kotlin = "2.4.21"
+
+spring-bom = "1.1.7"
+spring-boot = "4.1.1"
+
+detekt = "2.0.0-alpha.6"
+spotless = "8.10.2"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
+
+spring-bom = { id = "io.spring.dependency-management", version.ref = "spring-bom" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+
+detekt = { id = "dev.detekt", version.ref = "detekt" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

@@ -1,6 +1,6 @@
 plugins {
     id("me.polynom.common")
-    kotlin("plugin.jpa")
+    alias(libs.plugins.kotlin.jpa)
 }
 
 dependencies {

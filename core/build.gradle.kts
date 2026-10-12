@@ -2,7 +2,7 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     id("me.polynom.common")
-    id("org.springframework.boot")
+    alias(libs.plugins.spring.boot)
 }
 
 dependencies {
