@@ -26,7 +26,6 @@ dependencies {
 
     // Add all first-party plugins only while developing.
     developmentOnly(project(":authOidc"))
-    developmentOnly(project(":examplePlugin"))
     developmentOnly(project(":files"))
     developmentOnly(project(":stubAuth"))
     developmentOnly(project(":calendar"))

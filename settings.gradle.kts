@@ -11,10 +11,6 @@ project(":pluginBase").projectDir = file("plugins/pluginBase")
 include("authOidc")
 project(":authOidc").projectDir = file("plugins/authOidc")
 
-// Example plugin
-include("examplePlugin")
-project(":examplePlugin").projectDir = file("plugins/examplePlugin")
-
 // Example auth plugin
 include("stubAuth")
 project(":stubAuth").projectDir = file("plugins/stubAuth")
