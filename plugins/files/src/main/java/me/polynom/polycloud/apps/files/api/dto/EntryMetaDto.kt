@@ -1,8 +1,5 @@
 package me.polynom.polycloud.apps.files.api.dto
 
-import kotlinx.serialization.Serializable
-
-@Serializable
 data class EntryMetaDto(
     /**
      * Name of the file/directory

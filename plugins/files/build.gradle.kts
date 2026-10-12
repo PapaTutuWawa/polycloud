@@ -1,6 +1,5 @@
 plugins {
     kotlin("jvm")
-    kotlin("plugin.serialization")
     id("org.jetbrains.kotlin.kapt")
     kotlin("plugin.jpa")
 }
@@ -36,7 +35,7 @@ dependencies {
     kapt("org.mapstruct:mapstruct-processor:1.6.3")
 
     // Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    implementation("tools.jackson.module:jackson-module-kotlin:3.2.+")
 
     // Testing
     testImplementation(kotlin("test"))
