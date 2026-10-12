@@ -4,6 +4,7 @@ import me.polynom.polycloud.apps.calendar.persistence.entities.Calendar
 import me.polynom.polycloud.apps.calendar.persistence.repository.CalendarRepository
 import me.polynom.polycloud.apps.calendar.persistence.repository.EventRepository
 import me.polynom.polycloud.apps.calendar.service.CalendarService
+import me.polynom.polycloud.apps.calendar.service.VirtualEventService
 import me.polynom.polycloud.plugin.auth.UserContext
 import me.polynom.polycloud.plugin.auth.dto.AuthVerificationResult
 import org.junit.jupiter.api.Test
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.whenever
-import org.springframework.http.HttpStatus
 import org.springframework.transaction.support.TransactionTemplate
 import java.util.Optional
 import java.util.UUID
@@ -38,6 +38,9 @@ class CalendarServiceTests {
     @Mock
     private lateinit var transactionTemplate: TransactionTemplate
 
+    @Mock
+    private lateinit var virtualEventService: VirtualEventService
+
     private val calendarService: CalendarService
         get() =
             CalendarService(
@@ -47,6 +50,7 @@ class CalendarServiceTests {
                 calendarMapper,
                 eventMapper,
                 transactionTemplate,
+                virtualEventService,
             )
 
     @Test

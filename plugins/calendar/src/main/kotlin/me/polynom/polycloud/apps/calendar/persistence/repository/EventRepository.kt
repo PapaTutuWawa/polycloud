@@ -12,13 +12,6 @@ import java.util.UUID
  */
 interface EventRepository : CrudRepository<Event, UUID> {
     /**
-     * Finds all events inside a calendar.
-     *
-     * @param calendar  The UUID of the calendar.
-     */
-    fun findAllByCalendar(calendar: UUID): List<Event>
-
-    /**
      * Deletes an event based on the event ID and the calendar.
      *
      * @param calendar  The calendar's UUID.
@@ -34,7 +27,38 @@ interface EventRepository : CrudRepository<Event, UUID> {
      *
      * @param calendarIds   The UUIDs of the calendars.
      * @param timeframe     The timeframe that has to overlap the event's duration.
-     * @param user          The user that is doing the request.
+     */
+    // TODO: Unify this with the other API.
+    @NativeQuery(
+        """
+        SELECT
+            event.*,
+            calendar.color
+        FROM
+            event
+        JOIN calendar ON event.calendar = calendar.id
+        WHERE
+            (calendar.public = TRUE OR calendar.owner = ?1) AND
+            event.calendar IN ?2 AND
+            event.parent_id IS NULL AND
+            (
+                event.timeframe && ?3 OR
+                event.repeat_valid_until IS NOT NULL AND
+                    tstzrange(lower(event.timeframe), event.repeat_valid_until, '()') && ?3
+                    OR (event.repeat_mode IS NOT NULL AND event.repeat_valid_until IS NULL AND tstzrange(lower(event.timeframe), NULL, '()') && ?3)
+            )
+        """,
+    )
+    fun findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(
+        username: String?,
+        calendarIds: List<UUID>,
+        timeframe: Range<ZonedDateTime>,
+    ): List<Event>
+
+    /**
+     * Find events that have a given one as a parent.
+     *
+     * @param parentIds List of event IDs to query parents of.
      */
     @NativeQuery(
         """
@@ -45,12 +69,8 @@ interface EventRepository : CrudRepository<Event, UUID> {
             event
         JOIN calendar ON event.calendar = calendar.id
         WHERE
-            event.calendar IN ?1 AND
-            event.timeframe && ?2
+            event.parent_id IN ?1
         """,
     )
-    fun findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(
-        calendarIds: List<UUID>,
-        timeframe: Range<ZonedDateTime>,
-    ): List<Event>
+    fun findAllByParentIds(parentIds: List<UUID>): List<Event>
 }

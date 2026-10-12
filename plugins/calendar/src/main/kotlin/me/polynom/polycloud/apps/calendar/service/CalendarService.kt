@@ -34,16 +34,24 @@ import java.util.UUID
 class CalendarService(
     /** The calendar CRUD repository. */
     private val calendarRepository: CalendarRepository,
+
     /** The event CRUD repository. */
     private val eventRepository: EventRepository,
+
     /** The user context. */
     private val userContext: UserContext,
+
     /** The mapper for calendar entities. */
     private val calendarMapper: CalendarMapper,
+
     /** The mapper for event entities. */
     private val eventMapper: EventMapper,
+
     /** Transaction management. */
     private val transactionTemplate: TransactionTemplate,
+
+    /** Virtual event handler. */
+    private val virtualEventService: VirtualEventService,
 ) {
     /** Logging. */
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
@@ -139,53 +147,6 @@ class CalendarService(
     }
 
     /**
-     * Gets all events associated with a calendar.
-     *
-     * @param calendarId    The ID of the calendar.
-     * @return A {@link ResponseEntity} that may or may not contain the event list.
-     */
-    @Suppress("ReturnCount")
-    fun getEvents(
-        calendarId: UUID,
-        start: Long?,
-        end: Long?,
-        timezone: String?,
-    ): ResponseEntity<List<EventDto>> {
-        if (start == null && end == null && timezone == null) {
-            // Query all events
-            val calendar = getCalendarByIdWithAccessCheck(calendarId)
-            if (calendar.first == null) {
-                return ResponseEntity.status(calendar.second).build()
-            }
-
-            return ResponseEntity.ok(
-                eventRepository
-                    .findAllByCalendar(calendarId)
-                    .map(eventMapper::eventToEventDto),
-            )
-        } else if (start != null && end != null && timezone != null) {
-            // Query only events between start and end
-            val calendar = getCalendarByIdWithAccessCheck(calendarId)
-            if (calendar.first == null) {
-                return ResponseEntity.status(calendar.second).build()
-            }
-
-            val zone = ZoneId.of(timezone)
-            val startZdt = ZonedDateTime.ofInstant(Instant.ofEpochSecond(start), zone)
-            val endZdt = ZonedDateTime.ofInstant(Instant.ofEpochSecond(end), zone)
-            val range = Range.closed(startZdt, endZdt)
-
-            return ResponseEntity.ok(
-                eventRepository
-                    .findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(listOf(calendarId), range)
-                    .map(eventMapper::eventToEventDto),
-            )
-        }
-
-        return ResponseEntity.badRequest().build()
-    }
-
-    /**
      * Gets all events associated with a list of calendars.
      *
      * @param request   The request by the client.
@@ -201,15 +162,38 @@ class CalendarService(
         timezone: String,
     ): ResponseEntity<List<EventDto>> {
         val zone = ZoneId.of(timezone)
-        val events =
+        val viewStart = ZonedDateTime.ofInstant(Instant.ofEpochMilli(start), zone)
+        val viewEnd = ZonedDateTime.ofInstant(Instant.ofEpochMilli(end), zone)
+        val rawEvents =
             eventRepository
                 .findAllByCalenderIdsAndTimeframeOverlapWithTimeframe(
+                    userContext.getUser()?.username,
                     request.calendars.map(UUID::fromString),
-                    Range.closed(
-                        ZonedDateTime.ofInstant(Instant.ofEpochMilli(start), zone),
-                        ZonedDateTime.ofInstant(Instant.ofEpochMilli(end), zone),
-                    ),
-                ).map(eventMapper::eventToEventDto)
+                    Range.closed(viewStart, viewEnd),
+                )
+
+        // Find event overrides.
+        val recurringEvents = rawEvents
+            .filter { it.repeat != null }
+            .map { it.id!! }
+        val eventOverrides = eventRepository
+            .findAllByParentIds(recurringEvents)
+            .groupBy { it.parent!!.parentId!! }
+
+        logger.debug("Found [{}] events and [{}] overrides in the database", rawEvents.size, eventOverrides.size)
+        val events = rawEvents
+                .map ret@{
+                    if (it.repeat != null) {
+                        return@ret virtualEventService.processEvent(
+                            it,
+                            viewStart,
+                            viewEnd,
+                            eventOverrides,
+                        )
+                    } else {
+                        return@ret listOf(eventMapper.eventToEventDto(it))
+                    }
+                }.flatten()
 
         return ResponseEntity.ok(events)
     }

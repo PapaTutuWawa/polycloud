@@ -88,15 +88,6 @@ class CalendarApiController(
         @PathVariable eventId: UUID,
     ): ResponseEntity<Void> = service.deleteEvent(calendarId, eventId)
 
-    @Operation(summary = "Lists events in a calendar.")
-    @GetMapping("/calendar/{calendarId}/events")
-    fun getEvents(
-        @PathVariable calendarId: UUID,
-        @RequestParam("start") start: Long?,
-        @RequestParam("end") end: Long?,
-        @RequestParam("tz") timezone: String?,
-    ): ResponseEntity<List<EventDto>> = service.getEvents(calendarId, start, end, timezone)
-
     @Operation(summary = "Lists events in multiple calendars.")
     @PostMapping("/calendar/events")
     fun getEventsForMultipleCalendars(

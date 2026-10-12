@@ -44,6 +44,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-kotlinx-serialization-json")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("tools.jackson.module:jackson-module-kotlin:3.2.+")
 
     // JWT
     implementation("com.auth0:java-jwt:4.6.0")
