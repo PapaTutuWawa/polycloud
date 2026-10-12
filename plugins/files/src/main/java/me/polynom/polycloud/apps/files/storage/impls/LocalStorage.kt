@@ -53,7 +53,7 @@ class LocalStorage(
         path: StoragePath,
     ): List<EntryMeta> {
         if (path.file) {
-            throw StorageWrongTypeException(path, true)
+            throw StorageWrongTypeException(path, false)
         }
 
         // Convert storage path to real file on the fs
@@ -126,8 +126,8 @@ class LocalStorage(
     }
 
     override fun prepareUpload(upload: Upload) {
-        val vfsPath = StoragePath(upload.path)
-        if (!vfsPath.file) {
+        val vfsPath = upload.path
+        if (!upload.path.file) {
             throw StorageWrongTypeException(vfsPath, true)
         }
 
@@ -183,7 +183,7 @@ class LocalStorage(
     }
 
     override fun finaliseUpload(upload: Upload) {
-        val path = vfsToRelative(StoragePath(upload.path))
+        val path = vfsToRelative(upload.path)
         val targetPath = resolvePath(upload.user, path)
         val sourcePath = resolveUpload(upload)
 

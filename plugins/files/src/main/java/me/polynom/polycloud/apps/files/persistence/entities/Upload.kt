@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import me.polynom.polycloud.apps.files.storage.StoragePath
 import java.util.UUID
 
 /**
@@ -14,20 +15,21 @@ import java.util.UUID
 @Entity
 @Table(name = "uploads")
 class Upload(
-    /** Primary key. */
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    var id: UUID? = null,
     /** Size of the file that is being uploaded. */
     var size: Long,
     /** The user uploading the file. */
     @Column(name = "\"user\"")
     var user: String,
     /** The file's intended storage location. */
-    var path: String,
+    var path: StoragePath,
     /** Bytes already uploaded */
     @Column(name = "\"offset\"")
-    var offset: Long,
+    var offset: Long = 0L,
 ) {
+    /** Primary key. */
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    var id: UUID? = null
+
     fun done() = offset >= size
 }

@@ -1,5 +1,6 @@
 package me.polynom.polycloud.apps.files.service
 
+import me.polynom.polycloud.apps.files.Utils.into
 import me.polynom.polycloud.apps.files.config.LocalStorageConfig
 import me.polynom.polycloud.apps.files.config.StorageConfig
 import me.polynom.polycloud.apps.files.storage.StoragePath
@@ -13,10 +14,10 @@ import kotlin.test.assertNotEquals
 
 class StorageServiceTest {
     companion object {
-        private val PATH_ROOT = StoragePath("/")
-        private val PATH_MOUNT1 = StoragePath("/mount1/")
-        private val PATH_MOUNT1_NESTED = StoragePath("/mount1/nested/")
-        private val PATH_MOUNT2 = StoragePath("/mount2/")
+        private val PATH_ROOT = "/".into()
+        private val PATH_MOUNT1 = "/mount1/".into()
+        private val PATH_MOUNT1_NESTED = "/mount1/nested/".into()
+        private val PATH_MOUNT2 = "/mount2/".into()
     }
 
     private fun storageService(vararg locals: LocalStorageConfig) = StorageService(StorageConfig(locals.asList()))
@@ -40,77 +41,77 @@ class StorageServiceTest {
 
     @Test
     fun test_resolveMount_simple_success() {
-        val (storage, relPath) = simpleStorage.resolveMount(StoragePath("/file/test.txt"))
+        val (storage, relPath) = simpleStorage.resolveMount("/file/test.txt".into())
 
         assertNotNull(storage)
         assertEquals(PATH_ROOT, storage.mount)
-        assertEquals(StoragePath("/file/test.txt"), relPath)
+        assertEquals("/file/test.txt".into(), relPath)
     }
 
     @Test
     fun test_resolveMount_rootless_success() {
-        val (storage1, relPath1) = rootlessStorage.resolveMount(StoragePath("/"))
+        val (storage1, relPath1) = rootlessStorage.resolveMount("/".into())
         assertNull(storage1)
-        assertEquals(relPath1, StoragePath("/"))
+        assertEquals(relPath1, "/".into())
 
-        val (storage2, relPath2) = rootlessStorage.resolveMount(StoragePath("/mount1/something/test.mp4"))
+        val (storage2, relPath2) = rootlessStorage.resolveMount("/mount1/something/test.mp4".into())
         assertNotNull(storage2)
         assertEquals(PATH_MOUNT1, storage2.mount)
-        assertEquals(StoragePath("/something/test.mp4"), relPath2)
+        assertEquals("/something/test.mp4".into(), relPath2)
 
-        val (storage3, relPath3) = rootlessStorage.resolveMount(StoragePath("/mount2/yessir/"))
+        val (storage3, relPath3) = rootlessStorage.resolveMount("/mount2/yessir/".into())
         assertNotNull(storage3)
         assertEquals(PATH_MOUNT2, storage3.mount)
-        assertEquals(StoragePath("/yessir/"), relPath3)
+        assertEquals("/yessir/".into(), relPath3)
 
         assertNotEquals(storage2, storage3)
     }
 
     @Test
     fun test_resolveMount_nested_success() {
-        val (storage1, relPath1) = nestedStorage.resolveMount(StoragePath("/test.txt"))
+        val (storage1, relPath1) = nestedStorage.resolveMount("/test.txt".into())
         assertNull(storage1)
-        assertEquals(relPath1, StoragePath("/test.txt"))
+        assertEquals(relPath1, "/test.txt".into())
 
-        val (storage2, relPath2) = nestedStorage.resolveMount(StoragePath("/mount1/test.txt"))
+        val (storage2, relPath2) = nestedStorage.resolveMount("/mount1/test.txt".into())
         assertNotNull(storage2)
         assertEquals(PATH_MOUNT1, storage2.mount)
-        assertEquals(relPath2, StoragePath("/test.txt"))
+        assertEquals(relPath2, "/test.txt".into())
 
-        val (storage3, relPath3) = nestedStorage.resolveMount(StoragePath("/mount1/nested/test.txt"))
+        val (storage3, relPath3) = nestedStorage.resolveMount("/mount1/nested/test.txt".into())
         assertNotNull(storage3)
         assertEquals(PATH_MOUNT1_NESTED, storage3.mount)
-        assertEquals(relPath3, StoragePath("/test.txt"))
+        assertEquals(relPath3, "/test.txt".into())
 
         assertNotEquals(storage2, storage3)
     }
 
     @Test
     fun test_resolveMount_rootless_noMatch() {
-        val (storage, relPath) = rootlessStorage.resolveMount(StoragePath("/totally/unrelated/deep/path.txt"))
+        val (storage, relPath) = rootlessStorage.resolveMount("/totally/unrelated/deep/path.txt".into())
 
         assertNull(storage)
-        assertEquals(StoragePath("/totally/unrelated/deep/path.txt"), relPath)
+        assertEquals("/totally/unrelated/deep/path.txt".into(), relPath)
     }
 
     @Test
     fun test_resolveMount_mountBoundary_fileVsFolder() {
-        val (storage1, relPath1) = rootlessStorage.resolveMount(StoragePath("/mount1/"))
+        val (storage1, relPath1) = rootlessStorage.resolveMount("/mount1/".into())
         assertNotNull(storage1)
         assertEquals(PATH_MOUNT1, storage1.mount)
-        assertEquals(StoragePath("/"), relPath1)
+        assertEquals("/".into(), relPath1)
 
-        val (storage2, relPath2) = rootlessStorage.resolveMount(StoragePath("/mount1"))
+        val (storage2, relPath2) = rootlessStorage.resolveMount("/mount1".into())
         assertNull(storage2)
-        assertEquals(StoragePath("/mount1"), relPath2)
+        assertEquals("/mount1".into(), relPath2)
     }
 
     @Test
     fun test_resolveMount_emptyConfig() {
-        val (storage, relPath) = storageService().resolveMount(StoragePath("/some/path.txt"))
+        val (storage, relPath) = storageService().resolveMount("/some/path.txt".into())
 
         assertNull(storage)
-        assertEquals(StoragePath("/some/path.txt"), relPath)
+        assertEquals("/some/path.txt".into(), relPath)
     }
 
     @Test
@@ -136,34 +137,49 @@ class StorageServiceTest {
 
     @Test
     fun test_listMounts_simple() {
-        assertEquals(listOf(), simpleStorage.listMounts(StoragePath("/")))
+        assertEquals(setOf(), simpleStorage.listMounts("/".into()))
     }
 
     @Test
     fun test_listMounts_rootless() {
-        assertEquals(listOf(PATH_MOUNT1, PATH_MOUNT2), rootlessStorage.listMounts(StoragePath("/")))
-        assertEquals(listOf(PATH_MOUNT1, PATH_MOUNT2), rootlessStorage.listMounts(StoragePath("/does_not_exist")))
-        assertEquals(listOf(), rootlessStorage.listMounts(PATH_MOUNT1))
-        assertEquals(listOf(), rootlessStorage.listMounts(StoragePath("/random_folder/")))
+        assertEquals(setOf(PATH_MOUNT1, PATH_MOUNT2), rootlessStorage.listMounts("/".into()))
+        assertEquals(setOf(PATH_MOUNT1, PATH_MOUNT2), rootlessStorage.listMounts("/does_not_exist".into()))
+        assertEquals(setOf(), rootlessStorage.listMounts(PATH_MOUNT1))
+        assertEquals(setOf(), rootlessStorage.listMounts("/random_folder/".into()))
+    }
+
+    @Test
+    fun test_listMounts_nested() {
+        assertEquals(setOf(PATH_MOUNT1), nestedStorage.listMounts("/".into()))
+    }
+
+    @Test
+    fun test_listMounts_simpleNested() {
+        assertEquals(
+            setOf(PATH_MOUNT1),
+            storageService(
+                LocalStorageConfig(Path("."), PATH_MOUNT1_NESTED),
+            ).listMounts("/".into()),
+        )
     }
 
     @Test
     fun test_listMounts_emptyConfig() {
-        assertEquals(listOf(), storageService().listMounts(StoragePath("/")))
+        assertEquals(setOf(), storageService().listMounts("/".into()))
     }
 
     @Test
     fun test_listMounts_complex() {
         val storage =
             storageService(
-                LocalStorageConfig(Path("folder1"), StoragePath("/a/mount1/")),
-                LocalStorageConfig(Path("folder2"), StoragePath("/a/mount2/")),
-                LocalStorageConfig(Path("folder3"), StoragePath("/b/yes1/")),
-                LocalStorageConfig(Path("folder4"), StoragePath("/b/yes2/")),
-                LocalStorageConfig(Path("folder4"), StoragePath("/b/yes2/nested/")),
+                LocalStorageConfig(Path("folder1"), "/a/mount1/".into()),
+                LocalStorageConfig(Path("folder2"), "/a/mount2/".into()),
+                LocalStorageConfig(Path("folder3"), "/b/yes1/".into()),
+                LocalStorageConfig(Path("folder4"), "/b/yes2/".into()),
+                LocalStorageConfig(Path("folder4"), "/b/yes2/nested/".into()),
             )
-        assertEquals(listOf(StoragePath("/mount1/"), StoragePath("/mount2/")), storage.listMounts(StoragePath("/a/")))
-        assertEquals(listOf(StoragePath("/yes1/"), StoragePath("/yes2/")), storage.listMounts(StoragePath("/b/yes2")))
-        assertEquals(listOf(StoragePath("/nested/")), storage.listMounts(StoragePath("/b/yes2/")))
+        assertEquals(setOf("/mount1/".into(), "/mount2/".into()), storage.listMounts("/a/".into()))
+        assertEquals(setOf("/yes1/".into(), "/yes2/".into()), storage.listMounts("/b/yes2".into()))
+        assertEquals(setOf("/nested/".into()), storage.listMounts("/b/yes2/".into()))
     }
 }
