@@ -15,28 +15,26 @@ dependencies {
     developmentOnly(project(":stubAuth"))
     developmentOnly(project(":calendar"))
 
+    // SpringBoot
+    implementation(libs.spring.boot.starter.webmvc)
+    implementation(libs.spring.boot.starter.validation)
+    implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.actuator)
+
+    // JSON
+    implementation(libs.kotlinx.serialization.json)
+
     // Allow generating OpenAPI specs
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
+    implementation(libs.springdoc.openapi.starter.webmvc.ui)
 
     // Just use PostgreSQL for development
-    developmentOnly("org.postgresql:postgresql:42.7.13")
-
-    // SpringBoot
-    implementation("org.springframework.boot:spring-boot-starter-webmvc")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.springframework.boot:spring-boot-kotlinx-serialization-json")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    developmentOnly(libs.postgresql)
 
     // JWT
-    implementation("com.auth0:java-jwt:4.6.0")
+    implementation(libs.java.jwt)
 
     // Testing
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation(kotlin("test"))
+    testImplementation(libs.bundles.test)
 }
 
 tasks.withType<BootRun> {

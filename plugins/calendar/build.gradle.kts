@@ -4,34 +4,28 @@ plugins {
 }
 
 dependencies {
-    compileOnly("org.springframework.boot:spring-boot:4.1.1")
-    testImplementation("org.springframework.boot:spring-boot:4.1.1")
-    compileOnly("org.springframework.boot:spring-boot-starter-webmvc:4.1.1")
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc:4.1.1")
-    compileOnly("org.slf4j:slf4j-api:2.0.17")
-    implementation("org.springframework.boot:spring-boot-autoconfigure:4.1.1")
-
-    // Serialization
-    implementation("tools.jackson.module:jackson-module-kotlin:3.2.+")
-
-    // OpenAPI
-    compileOnly("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
-
-    // Data JPA
-    compileOnly("org.springframework.boot:spring-boot-starter-data-jpa:4.1.1")
-    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa:4.1.1")
-    implementation("io.hypersistence:hypersistence-utils-hibernate-73:3.15.4")
-
-    // Mapstruct
-    implementation("org.mapstruct:mapstruct:1.6.3")
-    kapt("org.mapstruct:mapstruct-processor:1.6.3")
-
     // Plugin types
     implementation(project(":pluginBase"))
 
+    // Spring MVC
+    compileOnly(libs.spring.boot.starter.webmvc)
+    testImplementation(libs.spring.boot.starter.webmvc)
+
+    // Data JPA
+    compileOnly(libs.spring.boot.starter.data.jpa)
+    testImplementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.hypersistence.utils.hibernate)
+
+    // Serialization
+    implementation(libs.jackson.module.kotlin)
+
+    // Mapstruct
+    implementation(libs.mapstruct)
+    kapt(libs.mapstruct.processor)
+
+    // OpenAPI
+    compileOnly(libs.springdoc.openapi.starter.webmvc.ui)
+
     // Testing
-    testImplementation(kotlin("test"))
-    testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
-    testImplementation("org.mockito:mockito-core:5.23.0")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:4.1.1")
+    testImplementation(libs.bundles.test)
 }
