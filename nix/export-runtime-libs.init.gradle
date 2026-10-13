@@ -1,0 +1,29 @@
+// Injected only by the Nix package build via --init-script; never touches the
+// project's own build files. Adds a task to every subproject that dumps the
+// third-party jars on its runtimeClasspath, so plugin jars (normally only
+// pulled onto core's classpath via `developmentOnly`) can be assembled into a
+// runnable classpath by the Nix derivation instead.
+allprojects { p ->
+    p.tasks.register("nixExportRuntimeLibs") {
+        def cfg = p.configurations.findByName("runtimeClasspath")
+        // `resolve()` in doLast doesn't by itself tell Gradle to build the
+        // project dependencies on this configuration first; declare it
+        // explicitly so e.g. pluginBase's jar is built before we read it.
+        if (cfg != null) {
+            dependsOn cfg
+        }
+        doLast {
+            if (cfg == null) {
+                return
+            }
+            def outDir = new File(p.projectDir, "build/nix-runtime-libs")
+            outDir.mkdirs()
+            cfg.resolve().each { f ->
+                def dest = new File(outDir, f.name)
+                if (!dest.exists()) {
+                    dest.bytes = f.bytes
+                }
+            }
+        }
+    }
+}
