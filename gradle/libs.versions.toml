@@ -1,0 +1,58 @@
+[versions]
+kotlin = "2.4.21"
+
+spring-bom = "1.1.7"
+spring-boot = "4.1.1"
+springdoc-openapi = "2.8.5"
+
+hypersistence-utils-hibernate = "3.15.4"
+jackson-module-kotlin = "3.2.3"
+java-jwt = "4.6.0"
+jwks-rsa = "0.24.1"
+mapstruct = "1.6.3"
+mockito-core = "5.23.0"
+mockito-kotlin = "6.3.0"
+postgresql = "42.7.13"
+
+detekt = "2.0.0-alpha.6"
+spotless = "8.10.2"
+
+[bundles]
+test = [ "kotlin-test", "kotlin-test-junit5", "mockito-core", "mockito-kotlin", "mockito-junit-jupiter" ]
+spring-test = [ "kotlin-test", "kotlin-test-junit5", "mockito-core", "mockito-kotlin", "mockito-junit-jupiter", "spring-boot-starter-test" ]
+
+[libraries]
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+kotlinx-serialization-json =  { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.11.0" }
+
+spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
+
+hypersistence-utils-hibernate = { module = "io.hypersistence:hypersistence-utils-hibernate-73", version.ref = "hypersistence-utils-hibernate" }
+jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson-module-kotlin" }
+java-jwt = { module = "com.auth0:java-jwt", version.ref = "java-jwt" }
+jwks-rsa = { module = "com.auth0:jwks-rsa", version.ref = "jwks-rsa" }
+mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
+mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito-core" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
+mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito-core" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
+
+spring-bom = { id = "io.spring.dependency-management", version.ref = "spring-bom" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+
+detekt = { id = "dev.detekt", version.ref = "detekt" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
