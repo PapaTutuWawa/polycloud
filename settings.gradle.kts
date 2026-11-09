@@ -1,5 +1,9 @@
 rootProject.name = "polycloud"
 
+pluginManagement {
+    includeBuild("build-logic")
+}
+
 // Add submodules
 include("core")
 
@@ -10,10 +14,6 @@ project(":pluginBase").projectDir = file("plugins/pluginBase")
 // OIDC Plugin
 include("authOidc")
 project(":authOidc").projectDir = file("plugins/authOidc")
-
-// Example plugin
-include("examplePlugin")
-project(":examplePlugin").projectDir = file("plugins/examplePlugin")
 
 // Example auth plugin
 include("stubAuth")
